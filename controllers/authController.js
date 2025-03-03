@@ -1,5 +1,4 @@
 // controllers/authController.js
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const config = require('../config/config');
@@ -34,14 +33,10 @@ exports.register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Email already in use', 400));
   }
   
-  // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-  
-  // Create user
+  // Create user (with plaintext password as requested)
   const [result] = await pool.query(
     'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-    [name, email, hashedPassword, role || 'passenger']
+    [name, email, password, role || 'user']
   );
   
   // Get created user
@@ -73,10 +68,10 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Please provide email and password', 400));
   }
   
-  // Check for user
+  // Check for user with direct password comparison
   const [rows] = await pool.query(
-    'SELECT * FROM users WHERE email = ?',
-    [email]
+    'SELECT * FROM users WHERE email = ? AND password = ?',
+    [email, password]
   );
   
   if (rows.length === 0) {
@@ -84,13 +79,6 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
   
   const user = rows[0];
-  
-  // Check if password matches
-  const isMatch = await bcrypt.compare(password, user.password);
-  
-  if (!isMatch) {
-    return next(new ErrorResponse('Invalid credentials', 401));
-  }
   
   // Create token
   const token = generateToken(user.user_id);
@@ -127,33 +115,24 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Please provide current and new password', 400));
   }
   
-  // Get user with password
+  // Get user
   const [rows] = await pool.query(
-    'SELECT * FROM users WHERE user_id = ?',
-    [req.user.user_id]
+    'SELECT * FROM users WHERE user_id = ? AND password = ?',
+    [req.user.user_id, currentPassword]
   );
   
-  const user = rows[0];
-  
-  // Check current password
-  const isMatch = await bcrypt.compare(currentPassword, user.password);
-  
-  if (!isMatch) {
+  if (rows.length === 0) {
     return next(new ErrorResponse('Current password is incorrect', 401));
   }
-  
-  // Hash new password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(newPassword, salt);
   
   // Update password
   await pool.query(
     'UPDATE users SET password = ? WHERE user_id = ?',
-    [hashedPassword, req.user.user_id]
+    [newPassword, req.user.user_id]
   );
   
   // Create token
-  const token = generateToken(user.user_id);
+  const token = generateToken(req.user.user_id);
   
   res.status(200).json({
     success: true,

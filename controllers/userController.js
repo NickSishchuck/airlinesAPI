@@ -1,6 +1,5 @@
 // controllers/userController.js
 const { pool } = require('../config/database');
-const bcrypt = require('bcryptjs');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');
 
@@ -80,15 +79,11 @@ exports.createUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Email already in use', 400));
   }
   
-  // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-  
-  // Create user
+  // Create user with plaintext password
   const [result] = await pool.query(`
     INSERT INTO users (name, email, password, role)
     VALUES (?, ?, ?, ?)
-  `, [name, email, hashedPassword, role || 'user']);
+  `, [name, email, password, role || 'user']);
   
   const [user] = await pool.query(`
     SELECT user_id, name, email, role, created_at, updated_at
@@ -127,30 +122,28 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     }
   }
   
-  // Prepare update data
-  let hashedPassword;
-  if (password) {
-    const salt = await bcrypt.genSalt(10);
-    hashedPassword = await bcrypt.hash(password, salt);
-  }
-  
   // Update user
-  await pool.query(`
+  const passwordClause = password ? ', password = ?' : '';
+  const query = `
     UPDATE users
     SET
       name = COALESCE(?, name),
-      email = COALESCE(?, email),
-      ${password ? 'password = ?,' : ''}
+      email = COALESCE(?, email)
+      ${passwordClause},
       role = COALESCE(?, role),
       updated_at = CURRENT_TIMESTAMP
     WHERE user_id = ?
-  `, [
+  `;
+  
+  const params = [
     name, 
-    email, 
-    ...(password ? [hashedPassword] : []),
+    email,
+    ...(password ? [password] : []),
     role,
     req.params.id
-  ]);
+  ];
+  
+  await pool.query(query, params);
   
   const [updatedUser] = await pool.query(`
     SELECT user_id, name, email, role, created_at, updated_at

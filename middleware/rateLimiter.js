@@ -1,5 +1,5 @@
 // middleware/rateLimiter.js
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit');
 
 // Create a limiter for API routes
 exports.apiLimiter = rateLimit({

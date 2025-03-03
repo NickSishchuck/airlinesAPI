@@ -13,7 +13,6 @@ const {
 } = require('../controllers/flightController');
 
 const { protect, authorize } = require('../middleware/auth');
-const { validateFlight } = require('../middleware/validator');
 
 // Route for search and schedule endpoints
 router.route('/search/by-route-date')
@@ -24,16 +23,16 @@ router.route('/schedule/generate')
 
 // Flight cancellation route
 router.route('/:id/cancel')
-  .patch(protect, authorize('admin', 'staff'), cancelFlight);
+  .patch(protect, authorize('admin', 'worker'), cancelFlight);
 
 // Main resource routes
 router.route('/')
   .get(getFlights)
-  .post(protect, authorize('admin', 'staff'), validateFlight, createFlight);
+  .post(protect, authorize('admin', 'worker'), createFlight);
 
 router.route('/:id')
   .get(getFlight)
-  .put(protect, authorize('admin', 'staff'), validateFlight, updateFlight)
+  .put(protect, authorize('admin', 'worker'), updateFlight)
   .delete(protect, authorize('admin'), deleteFlight);
 
 module.exports = router;

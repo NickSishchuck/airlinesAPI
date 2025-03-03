@@ -15,10 +15,10 @@ exports.protect = asyncHandler(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    // Set token from Bearer token in header
     token = req.headers.authorization.split(' ')[1];
   }
-  // If no token found, return error
+  
+  // Make sure token exists
   if (!token) {
     return next(new ErrorResponse('Not authorized to access this route', 401));
   }
@@ -37,7 +37,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
       return next(new ErrorResponse('User no longer exists', 401));
     }
 
-    // Add user info to request
+    // Add user to request
     req.user = rows[0];
     next();
   } catch (err) {

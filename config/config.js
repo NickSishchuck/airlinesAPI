@@ -1,62 +1,43 @@
-// app.js - Express application setup
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const xss = require('xss-clean');
-const rateLimit = require('express-rate-limit');
-const hpp = require('hpp');
-const morgan = require('morgan');
-const errorHandler = require('./middleware/errorHandler');
+require('dotenv').config();
 
-// Initialize express app
-const app = express();
+module.exports = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: process.env.PORT || 3000,
+  DB_HOST: process.env.DB_HOST || 'localhost',
+  DB_USER: process.env.DB_USER || 'airline_user',
+  DB_PASSWORD: process.env.DB_PASSWORD || '',
+  DB_NAME: process.env.DB_NAME || 'airline_transportation',
+  JWT_SECRET: process.env.JWT_SECRET || 'your_jwt_secret_key',
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '30d',
+  JWT_COOKIE_EXPIRES_IN: process.env.JWT_COOKIE_EXPIRES_IN || 30
+};
 
-// Body parser
-app.use(express.json());
+// config/database.js
+const mysql = require('mysql2/promise');
+const config = require('./config');
+const logger = require('../utils/logger');
 
-// Set security HTTP headers
-app.use(helmet());
-
-// Prevent XSS attacks
-app.use(xss());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 100 // Limit each IP to 100 requests per windowMs
-});
-app.use('/api', limiter);
-
-// Prevent http param pollution
-app.use(hpp());
-
-// Enable CORS
-app.use(cors());
-
-// Dev logging middleware
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
-
-// Mount routers
-app.use('/api/routes', require('./routes/routes'));
-app.use('/api/captains', require('./routes/captains'));
-app.use('/api/aircraft', require('./routes/aircraft'));
-app.use('/api/flights', require('./routes/flights'));
-app.use('/api/passengers', require('./routes/passengers'));
-app.use('/api/tickets', require('./routes/tickets'));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-
-// Home route
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to Airline Transportation API',
-    documentation: '/api/docs'
-  });
+// Create connection pool
+const pool = mysql.createPool({
+  host: config.DB_HOST,
+  user: config.DB_USER,
+  password: config.DB_PASSWORD,
+  database: config.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-// Error handler middleware
-app.use(errorHandler);
+// Connect to database
+const connectDB = async () => {
+  try {
+    const connection = await pool.getConnection();
+    logger.info(`MySQL Database connected to ${config.DB_HOST}:${config.DB_NAME}`);
+    connection.release();
+  } catch (error) {
+    logger.error('Database connection failed:', error.message);
+    process.exit(1);
+  }
+};
 
-module.exports = app;
+module.exports = { pool, connectDB };
