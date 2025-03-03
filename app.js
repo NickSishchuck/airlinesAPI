@@ -29,7 +29,7 @@ app.use('/api/aircraft', require('./routes/aircraft'));
 app.use('/api/flights', require('./routes/flights'));
 app.use('/api/passengers', require('./routes/passengers'));
 app.use('/api/tickets', require('./routes/tickets'));
-//app.use('/api/auth', require('./routes/auth')); //No use for it now
+app.use('/api/auth', require('./routes/auth')); 
 app.use('/api/users', require('./routes/users'));
 
 // Home route
