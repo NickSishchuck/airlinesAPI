@@ -33,7 +33,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Email already in use', 400));
   }
   
-  // Create user (with plaintext password as requested)
+  // Create user
   const [result] = await pool.query(
     'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
     [name, email, password, role || 'user']

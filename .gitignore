@@ -1,3 +1,5 @@
 node_modules/
 .env
 sql_files/
+logs/combined.log
+logs/error.log
