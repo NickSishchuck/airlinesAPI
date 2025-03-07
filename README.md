@@ -2,7 +2,7 @@
 
 ## Overview
 
-This API provides endpoints for managing an airline transportation system, including routes, flights, aircraft, captains, passengers, and tickets.
+This is my term paper project's API that provides endpoints for managing an airline transportation system, including routes, flights, aircraft, captains, passengers, and tickets.
 ## Task
 Database 'Air Transportation'. 
 The airline engages in the air transportation of passengers. Flights are operated along established routes according to a schedule. 
