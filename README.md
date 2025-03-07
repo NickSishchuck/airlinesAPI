@@ -3,6 +3,31 @@
 ## Overview
 
 This API provides endpoints for managing an airline transportation system, including routes, flights, aircraft, captains, passengers, and tickets.
+## Task
+Database 'Air Transportation'. 
+The airline engages in the air transportation of passengers. Flights are operated along established routes according to a schedule. 
+Each airplane is assigned a captain. The database should store information about routes, flights, passengers, airplanes, and captains. 
+When designing the database, the following should be taken into account: 
+
+Several flights may be operated on one route; 
+
+A passenger may purchase tickets for several flights;
+
+An airplane may be assigned to several flights. One airplane is assigned to each flight; 
+
+One captain is assigned per airplane. If no passenger buys a ticket for a flight, then the flight is cancelled.
+
+## Ready queries:
+
+Search for a flight by route and date;
+
+Formation of the schedule;
+
+Reporting on sold tickets;
+
+Ticket generation.
+
+
 
 ## Base URL
 
