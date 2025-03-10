@@ -9,7 +9,6 @@ const {
   logout
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
-//const { authLimiter } = require('../middleware/rateLimiter');
 
 router.post('/register', register);
 router.post('/login', login);
