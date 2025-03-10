@@ -8,3 +8,6 @@
 2025-03-05 06:05:31 error: Invalid credentials
 2025-03-05 06:05:48 error: Invalid credentials
 2025-03-05 06:06:52 error: Not authorized to access this route
+2025-03-07 15:33:50 error: Invalid credentials
+2025-03-10 06:16:28 error: PROCEDURE airline_transportation.generate_flight_schedule does not exist
+2025-03-10 06:21:00 error: Not authorized to access this route
