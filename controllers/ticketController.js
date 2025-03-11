@@ -1,4 +1,3 @@
-// controllers/ticketController.js
 const Ticket = require('../models/ticketModel');
 const Flight = require('../models/flightModel');
 const ErrorResponse = require('../utils/errorResponse');

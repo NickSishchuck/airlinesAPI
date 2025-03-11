@@ -1,4 +1,3 @@
-// controllers/flightController.js
 const Flight = require('../models/flightModel');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');

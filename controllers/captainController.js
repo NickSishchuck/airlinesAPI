@@ -1,4 +1,3 @@
-// controllers/captainController.js
 const Captain = require('../models/captainModel');
 const Aircraft = require('../models/aircraftModel');
 const ErrorResponse = require('../utils/errorResponse');

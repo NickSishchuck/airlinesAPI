@@ -1,4 +1,3 @@
-// services/reportService.js
 const { pool } = require('../config/database');
 const { formatDate } = require('../utils/dateFormat');
 

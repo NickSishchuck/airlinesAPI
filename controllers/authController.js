@@ -1,4 +1,4 @@
-// controllers/authController.js
+
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const config = require('../config/config');

@@ -1,4 +1,3 @@
-// controllers/userController.js
 const { pool } = require('../config/database');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');

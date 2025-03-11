@@ -1,4 +1,3 @@
-// models/passengerModel.js
 const { pool } = require('../config/database');
 
 /**

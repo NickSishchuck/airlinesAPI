@@ -1,4 +1,3 @@
-// controllers/routeController.js
 const Route = require('../models/routeModel');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');

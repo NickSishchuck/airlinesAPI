@@ -1,4 +1,3 @@
-// services/scheduleService.js
 const { pool } = require('../config/database');
 const { formatMySQLDateTime } = require('../utils/dateFormat');
 const logger = require('../utils/logger');

@@ -1,4 +1,4 @@
-// config/config.js
+
 require('dotenv').config();
 
 module.exports = {

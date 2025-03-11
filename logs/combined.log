@@ -41,3 +41,12 @@
 2025-03-10 05:57:12 info: MySQL Database connected to localhost:airline_transportation
 2025-03-10 06:16:28 error: PROCEDURE airline_transportation.generate_flight_schedule does not exist
 2025-03-10 06:21:00 error: Not authorized to access this route
+2025-03-11 20:09:30 info: Server running in development mode on port 3000
+2025-03-11 20:09:30 info: MySQL Database connected to localhost:airline_transportation
+2025-03-11 20:09:30 info: MySQL Database connected to localhost:airline_transportation
+2025-03-11 20:29:22 error: Database connection failed:
+2025-03-11 20:29:44 info: Server running in test mode on port 3000
+2025-03-11 20:29:44 error: Database connection failed:
+2025-03-11 20:35:47 info: Server running in development mode on port 3000
+2025-03-11 20:35:47 info: MySQL Database connected to localhost:airline_transportation
+2025-03-11 20:35:47 info: MySQL Database connected to localhost:airline_transportation

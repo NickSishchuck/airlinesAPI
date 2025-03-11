@@ -1,4 +1,3 @@
-// models/routeModel.js
 const { pool } = require('../config/database');
 
 /**

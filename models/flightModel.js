@@ -1,4 +1,4 @@
-// models/flightModel.js
+
 const { pool } = require('../config/database');
 const dateFormat = require('../utils/dateFormat');
 

@@ -1,4 +1,3 @@
-// models/captainModel.js
 const { pool } = require('../config/database');
 
 /**
