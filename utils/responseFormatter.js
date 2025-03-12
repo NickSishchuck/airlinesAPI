@@ -1,4 +1,3 @@
- // utils/responseFormatter.js
   /**
    * Format a successful response
    * @param {object} data - Response data

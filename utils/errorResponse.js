@@ -1,4 +1,3 @@
-// utils/errorResponse.js
 /**
  * Error response class for API errors
  * @extends Error

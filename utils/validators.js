@@ -1,4 +1,3 @@
-// utils/validators.js
 /**
  * Validate email format
  * @param {string} email - Email to validate

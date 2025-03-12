@@ -4,6 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const { connectDB } = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
+const docsRouter = require('./routes/docs');
 
 // Initialize express app
 const app = express();
@@ -31,7 +32,7 @@ app.use('/api/passengers', require('./routes/passengers'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/auth', require('./routes/auth')); 
 app.use('/api/users', require('./routes/users'));
-app.use('/api/docs', require('./routes/docs'));
+app.use('/api', docsRouter);
 
 // Home route
 app.get('/', (req, res) => {

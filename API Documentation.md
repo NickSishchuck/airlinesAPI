@@ -861,7 +861,3 @@ The API implements role-based access control with three roles:
 - `passenger` - Can manage own tickets and view public flight information
 - `staff` - Can manage flights, view passenger information, and generate reports
 - `admin` - Has full access to all endpoints
-
-## Additional Documentation
-
-For detailed API information, including all available endpoints and parameters, refer to the route files in the `routes` directory of the backend codebase.

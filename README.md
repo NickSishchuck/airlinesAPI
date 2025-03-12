@@ -7,7 +7,7 @@ This API provides endpoints for managing an airline transportation system, inclu
 ## Base URL
 
 ```
-http://your-server-ip:3000/api
+http://localhost:3000/api
 ```
 
 ## Authentication
@@ -861,7 +861,3 @@ The API implements role-based access control with three roles:
 - `passenger` - Can manage own tickets and view public flight information
 - `staff` - Can manage flights, view passenger information, and generate reports
 - `admin` - Has full access to all endpoints
-
-## Additional Documentation
-
-For detailed API information, including all available endpoints and parameters, refer to the route files in the `routes` directory of the backend codebase.

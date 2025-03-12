@@ -1,4 +1,3 @@
-// utils/dateFormat.js
 /**
  * Format a date object to YYYY-MM-DD format
  * @param {Date} date - The date to format
