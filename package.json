@@ -23,5 +23,9 @@
     "supertest": "^7.0.0",
     "winston": "^3.17.0",
     "xss-clean": "^0.1.4"
+  },
+  "jest": {
+    "setupFilesAfterEnv": ["./jest.setup.js"],
+    "testEnvironment": "node"
   }
 }

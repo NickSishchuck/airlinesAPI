@@ -22,7 +22,10 @@ const connectDB = async () => {
     connection.release();
   } catch (error) {
     logger.error('Database connection failed:', error.message);
-    process.exit(1);
+    
+    //process.exit(1);  this doesent work for some reason
+
+    throw new Error(`Database connection failed: ${error.message}`);
   }
 };
 
