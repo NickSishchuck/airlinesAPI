@@ -42,14 +42,14 @@ CREATE TABLE aircraft (
     FOREIGN KEY (captain_id) REFERENCES captains(captain_id)
 );
 
--- Flights table
+
 CREATE TABLE flights (
     flight_id INT AUTO_INCREMENT PRIMARY KEY,
-    flight_number VARCHAR(20) UNIQUE NOT NULL,
-    route_id INT NOT NULL,
-    aircraft_id INT NOT NULL,
-    departure_time DATETIME NOT NULL,
-    arrival_time DATETIME NOT NULL,
+    flight_number VARCHAR(20) UNIQUE ,
+    route_id INT ,
+    aircraft_id INT ,
+    departure_time DATETIME ,
+    arrival_time DATETIME ,
     status ENUM('scheduled', 'boarding', 'departed', 'arrived', 'delayed', 'canceled') DEFAULT 'scheduled',
     gate VARCHAR(10),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -58,16 +58,18 @@ CREATE TABLE flights (
     FOREIGN KEY (aircraft_id) REFERENCES aircraft(aircraft_id)
 );
 
--- Passengers table
-CREATE TABLE passengers (
-    passenger_id INT AUTO_INCREMENT PRIMARY KEY,
+-- Users table (merged with passengers)
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) UNIQUE,
+    password VARCHAR(255),
+    role ENUM('admin', 'worker', 'passenger') DEFAULT 'passenger',
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    passport_number VARCHAR(50) UNIQUE NOT NULL,
-    nationality VARCHAR(50) NOT NULL,
-    date_of_birth DATE NOT NULL,
+    passport_number VARCHAR(50) UNIQUE,
+    nationality VARCHAR(50),
+    date_of_birth DATE,
     contact_number VARCHAR(20),
-    email VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -75,16 +77,16 @@ CREATE TABLE passengers (
 -- Tickets table
 CREATE TABLE tickets (
     ticket_id INT AUTO_INCREMENT PRIMARY KEY,
-    passenger_id INT NOT NULL,
+    user_id INT NOT NULL,
     flight_id INT NOT NULL,
     seat_number VARCHAR(10) NOT NULL,
     class ENUM('economy', 'business', 'first') DEFAULT 'economy',
-    price DECIMAL(10, 2) NOT NULL,
+    price DECIMAL(10, 2) ,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_status ENUM('pending', 'completed', 'refunded') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (passenger_id) REFERENCES passengers(passenger_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (flight_id) REFERENCES flights(flight_id),
     UNIQUE KEY unique_seat (flight_id, seat_number)
 );
@@ -93,4 +95,4 @@ CREATE TABLE tickets (
 CREATE INDEX idx_flights_departure ON flights(departure_time);
 CREATE INDEX idx_flights_route ON flights(route_id);
 CREATE INDEX idx_tickets_flight ON tickets(flight_id);
-CREATE INDEX idx_tickets_passenger ON tickets(passenger_id);
+CREATE INDEX idx_tickets_user ON tickets(user_id);

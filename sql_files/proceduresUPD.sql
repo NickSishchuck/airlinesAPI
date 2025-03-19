@@ -1,4 +1,5 @@
 USE airline_transportation;
+
 -- Query 1: Search for flights by route and date
 DELIMITER //
 CREATE PROCEDURE search_flights_by_route_and_date(
@@ -104,7 +105,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Query 4: Generate a ticket
+-- Query 4: Generate a ticket (Updated to use users table)
 DELIMITER //
 CREATE PROCEDURE generate_ticket(
   IN p_ticket_id INT
@@ -113,7 +114,7 @@ BEGIN
   SELECT 
     t.ticket_id,
     t.seat_number,
-    t.ticket_class,
+    t.class,
     t.price,
     f.flight_number,
     f.departure_time,
@@ -121,8 +122,8 @@ BEGIN
     r.origin,
     r.destination,
     a.model AS aircraft_model,
-    CONCAT(p.first_name, ' ', p.last_name) AS passenger_name,
-    p.passport_number
+    CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
+    u.passport_number
   FROM 
     tickets t
   JOIN 
@@ -132,7 +133,7 @@ BEGIN
   JOIN 
     aircraft a ON f.aircraft_id = a.aircraft_id
   JOIN 
-    passengers p ON t.passenger_id = p.passenger_id
+    users u ON t.user_id = u.user_id
   WHERE 
     t.ticket_id = p_ticket_id;
 END //
