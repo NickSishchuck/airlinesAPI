@@ -11,7 +11,7 @@ exports.getAllPassengers = async (page = 1, limit = 10) => {
   
   const [rows] = await pool.query(`
     SELECT 
-      passenger_id,
+      user_id,
       first_name,
       last_name,
       passport_number,
@@ -21,12 +21,12 @@ exports.getAllPassengers = async (page = 1, limit = 10) => {
       email,
       created_at,
       updated_at
-    FROM passengers
+    FROM users
     ORDER BY last_name, first_name
     LIMIT ? OFFSET ?
   `, [limit, offset]);
   
-  const [countRows] = await pool.query('SELECT COUNT(*) as count FROM passengers');
+  const [countRows] = await pool.query('SELECT COUNT(*) as count FROM users');
   const count = countRows[0].count;
   
   return {
@@ -46,19 +46,19 @@ exports.getAllPassengers = async (page = 1, limit = 10) => {
 exports.getPassengerById = async (id) => {
   const [rows] = await pool.query(`
     SELECT 
-      p.passenger_id,
-      p.first_name,
-      p.last_name,
-      p.passport_number,
-      p.nationality,
-      p.date_of_birth,
-      p.contact_number,
-      p.email,
-      p.created_at,
-      p.updated_at,
-      (SELECT COUNT(*) FROM tickets t WHERE t.passenger_id = p.passenger_id) AS ticket_count
-    FROM passengers p
-    WHERE p.passenger_id = ?
+      u.user_id,
+      u.first_name,
+      u.last_name,
+      u.passport_number,
+      u.nationality,
+      u.date_of_birth,
+      u.contact_number,
+      u.email,
+      u.created_at,
+      u.updated_at,
+      (SELECT COUNT(*) FROM tickets t WHERE t.user_id = u.user_id) AS ticket_count
+    FROM users u
+    WHERE u.user_id = ?
   `, [id]);
   
   return rows[0];
@@ -71,11 +71,11 @@ exports.getPassengerById = async (id) => {
  * @returns {Promise<boolean>} Whether passport exists
  */
 exports.passportExists = async (passportNumber, excludeId = null) => {
-  let query = 'SELECT COUNT(*) AS count FROM passengers WHERE passport_number = ?';
+  let query = 'SELECT COUNT(*) AS count FROM users WHERE passport_number = ?';
   const params = [passportNumber];
   
   if (excludeId) {
-    query += ' AND passenger_id != ?';
+    query += ' AND user_id != ?';
     params.push(excludeId);
   }
   
@@ -100,7 +100,7 @@ exports.createPassenger = async (passengerData) => {
   } = passengerData;
   
   const [result] = await pool.query(`
-    INSERT INTO passengers (
+    INSERT INTO users (
       first_name, last_name, passport_number, 
       nationality, date_of_birth, contact_number, email
     ) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -135,7 +135,7 @@ exports.updatePassenger = async (id, passengerData) => {
   } = passengerData;
   
   const [result] = await pool.query(`
-    UPDATE passengers
+    UPDATE users
     SET
       first_name = COALESCE(?, first_name),
       last_name = COALESCE(?, last_name),
@@ -145,7 +145,7 @@ exports.updatePassenger = async (id, passengerData) => {
       contact_number = COALESCE(?, contact_number),
       email = COALESCE(?, email),
       updated_at = CURRENT_TIMESTAMP
-    WHERE passenger_id = ?
+    WHERE user_id = ?
   `, [
     first_name,
     last_name,
@@ -166,7 +166,7 @@ exports.updatePassenger = async (id, passengerData) => {
  * @returns {Promise<boolean>} Whether deletion was successful
  */
 exports.deletePassenger = async (id) => {
-  const [result] = await pool.query('DELETE FROM passengers WHERE passenger_id = ?', [id]);
+  const [result] = await pool.query('DELETE FROM users WHERE user_id = ?', [id]);
   return result.affectedRows > 0;
 };
 
@@ -178,13 +178,13 @@ exports.deletePassenger = async (id) => {
 exports.searchPassengers = async (searchTerm) => {
   const [rows] = await pool.query(`
     SELECT 
-      passenger_id,
+      user_id,
       first_name,
       last_name,
       passport_number,
       nationality,
       email
-    FROM passengers
+    FROM users
     WHERE 
       CONCAT(first_name, ' ', last_name) LIKE ? OR
       passport_number LIKE ?

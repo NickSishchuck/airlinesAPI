@@ -28,6 +28,8 @@ exports.register = asyncHandler(async (req, res, next) => {
     'SELECT * FROM users WHERE email = ?',
     [email]
   );
+
+  // TODO Check the phone number
   
   if (existingUser.length > 0) {
     return next(new ErrorResponse('Email already in use', 400));
@@ -35,13 +37,13 @@ exports.register = asyncHandler(async (req, res, next) => {
   
   // Create user
   const [result] = await pool.query(
-    'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+    'INSERT INTO users (first_name, email, password, role) VALUES (?, ?, ?, ?)',
     [name, email, password, role || 'user']
   );
   
   // Get created user
   const [rows] = await pool.query(
-    'SELECT user_id, name, email, role, created_at FROM users WHERE user_id = ?',
+    'SELECT user_id, first_name, email, role, created_at FROM users WHERE user_id = ?',
     [result.insertId]
   );
   

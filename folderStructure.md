@@ -18,7 +18,7 @@ airlines-api/
 ├── middleware/                 # Middleware functions
 │   ├── auth.js                 # Authentication middleware
 │   ├── errorHandler.js         # Error handling middleware
-│   ├── rateLimiter.js          # API rate limiting
+│   ├── asyncHandler.js         # Handler for asynchronous functions
 │   └── validator.js            # Request data validation
 │
 ├── models/                     # Database models and queries
@@ -34,6 +34,7 @@ airlines-api/
 │   ├── flights.js              # Flight-related routes
 │   ├── routes.js               # Route-related routes
 │   ├── aircraft.js             # Aircraft-related routes
+│   ├── docs.js                 # Docs-related routes
 │   ├── captains.js             # Captain-related routes
 │   ├── passengers.js           # Passenger-related routes
 │   └── tickets.js              # Ticket-related routes

@@ -1,3 +1,5 @@
+// TODO Change passengers to users since I merged those two tables
+
 const { pool } = require('../config/database');
 
 /**
@@ -22,12 +24,12 @@ exports.getAllTickets = async (page = 1, limit = 10) => {
       f.arrival_time,
       r.origin,
       r.destination,
-      CONCAT(p.first_name, ' ', p.last_name) AS passenger_name,
-      p.passport_number
+      CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
+      u.passport_number
     FROM tickets t
     JOIN flights f ON t.flight_id = f.flight_id
     JOIN routes r ON f.route_id = r.route_id
-    JOIN passengers p ON t.passenger_id = p.passenger_id
+    JOIN users u ON t.user_id = u.user_id
     ORDER BY t.booking_date DESC
     LIMIT ? OFFSET ?
   `, [limit, offset]);
@@ -53,7 +55,7 @@ exports.getTicketById = async (id) => {
   const [rows] = await pool.query(`
     SELECT 
       t.ticket_id,
-      t.passenger_id,
+      t.user_id,
       t.flight_id,
       t.seat_number,
       t.class,
@@ -67,14 +69,14 @@ exports.getTicketById = async (id) => {
       f.gate,
       r.origin,
       r.destination,
-      CONCAT(p.first_name, ' ', p.last_name) AS passenger_name,
-      p.passport_number,
+      CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
+      u.passport_number,
       a.model AS aircraft_model,
       a.registration_number
     FROM tickets t
     JOIN flights f ON t.flight_id = f.flight_id
     JOIN routes r ON f.route_id = r.route_id
-    JOIN passengers p ON t.passenger_id = p.passenger_id
+    JOIN users u ON t.user_id = u.user_id
     JOIN aircraft a ON f.aircraft_id = a.aircraft_id
     WHERE t.ticket_id = ?
   `, [id]);
@@ -115,7 +117,7 @@ exports.getTicketsByPassenger = async (passengerId) => {
     FROM tickets t
     JOIN flights f ON t.flight_id = f.flight_id
     JOIN routes r ON f.route_id = r.route_id
-    WHERE t.passenger_id = ?
+    WHERE t.user_id = ?
     ORDER BY f.departure_time
   `, [passengerId]);
   
@@ -138,7 +140,7 @@ exports.getTicketsByFlight = async (flightId) => {
       p.passport_number,
       t.payment_status
     FROM tickets t
-    JOIN passengers p ON t.passenger_id = p.passenger_id
+    JOIN users u ON t.user_id = u.user_id
     WHERE t.flight_id = ?
     ORDER BY t.seat_number
   `, [flightId]);
@@ -176,7 +178,7 @@ exports.createTicket = async (ticketData) => {
   
   const [result] = await pool.query(`
     INSERT INTO tickets (
-      passenger_id, flight_id, seat_number, 
+      user_id, flight_id, seat_number, 
       class, price, payment_status
     ) VALUES (?, ?, ?, ?, ?, ?)
   `, [

@@ -1,5 +1,13 @@
-2025-03-15 16:09:31 info: MySQL Database connected to localhost:airline_transportation
-2025-03-15 16:09:31 info: Test setup complete
-2025-03-15 16:09:31 error: Invalid credentials
-2025-03-15 16:09:31 error: Not authorized to access this route
-2025-03-15 16:09:31 error: Test teardown failed:
+2025-03-19 14:20:17 info: Server running in development mode on port 3000
+2025-03-19 14:20:17 info: MySQL Database connected to localhost:airline_transportation
+2025-03-19 14:20:17 info: MySQL Database connected to localhost:airline_transportation
+2025-03-19 14:20:30 error: Invalid credentials
+2025-03-19 14:31:27 error: Table 'airline_transportation.passengers' doesn't exist
+2025-03-19 14:31:45 error: Table 'airline_transportation.passengers' doesn't exist
+2025-03-19 15:12:26 info: Server running in development mode on port 3000
+2025-03-19 15:12:26 info: MySQL Database connected to localhost:airline_transportation
+2025-03-19 15:12:26 info: MySQL Database connected to localhost:airline_transportation
+2025-03-19 15:12:49 error: Unknown column 'u.first_name' in 'SELECT'
+2025-03-19 15:19:36 info: Server running in development mode on port 3000
+2025-03-19 15:19:36 info: MySQL Database connected to localhost:airline_transportation
+2025-03-19 15:19:36 info: MySQL Database connected to localhost:airline_transportation
