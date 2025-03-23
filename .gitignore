@@ -1,5 +1,4 @@
 node_modules/
 .env
-logs/combined.log
-logs/error.log
+logs/
 TODO
