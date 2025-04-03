@@ -27,3 +27,4 @@ router.route('/:id')
 
 module.exports = router;
 
+//TODO manage the plane seat's classes(first, second, etc)

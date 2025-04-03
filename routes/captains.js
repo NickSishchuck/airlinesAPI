@@ -26,3 +26,5 @@ router.route('/:id')
   .delete(protect, authorize('admin'), deleteCaptain);
 
 module.exports = router;
+
+//TODO: handle the team management

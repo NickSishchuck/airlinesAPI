@@ -35,3 +35,5 @@ router.route('/:id')
   .delete(protect, authorize('admin'), deleteFlight);
 
 module.exports = router;
+
+//TODO add price to flight
