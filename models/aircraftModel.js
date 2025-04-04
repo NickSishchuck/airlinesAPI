@@ -57,8 +57,7 @@ exports.getAircraftById = async (id) => {
       a.status,
       c.name AS crew_name,
       c.status AS crew_status,
-      a.created_at,
-      a.updated_at
+      a.created_at
     FROM aircraft a
     LEFT JOIN crews c ON a.crew_id = c.crew_id
     WHERE a.aircraft_id = ?
@@ -142,8 +141,7 @@ exports.updateAircraft = async (id, aircraftData) => {
       capacity = COALESCE(?, capacity),
       manufacturing_year = COALESCE(?, manufacturing_year),
       crew_id = COALESCE(?, crew_id),
-      status = COALESCE(?, status),
-      updated_at = CURRENT_TIMESTAMP
+      status = COALESCE(?, status)
     WHERE aircraft_id = ?
   `, [
     model,

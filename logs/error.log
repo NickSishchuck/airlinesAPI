@@ -23,3 +23,6 @@
 2025-04-01 19:26:26 error: Not authorized to access these tickets
 2025-04-01 19:30:00 error: Not authorized to access these tickets
 2025-04-01 19:30:58 error: Not authorized to access these tickets
+2025-04-04 19:07:11 error: Unknown column 'updated_at' in 'SET'
+2025-04-04 19:08:40 error: Unknown column 'updated_at' in 'SET'
+2025-04-04 19:09:59 error: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE flight_id = '2'' at line 11

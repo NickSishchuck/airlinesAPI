@@ -88,8 +88,7 @@ exports.updateRoute = async (id, routeData) => {
       origin = COALESCE(?, origin),
       destination = COALESCE(?, destination),
       distance = COALESCE(?, distance),
-      estimated_duration = COALESCE(?, estimated_duration),
-      updated_at = CURRENT_TIMESTAMP
+      estimated_duration = COALESCE(?, estimated_duration)
     WHERE route_id = ?
   `, [
     origin,

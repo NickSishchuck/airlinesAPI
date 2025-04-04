@@ -19,8 +19,7 @@ exports.getAllPassengers = async (page = 1, limit = 10) => {
       date_of_birth,
       contact_number,
       email,
-      created_at,
-      updated_at
+      created_at
     FROM users
     ORDER BY last_name, first_name
     LIMIT ? OFFSET ?
@@ -54,8 +53,6 @@ exports.getPassengerById = async (id) => {
       u.date_of_birth,
       u.contact_number,
       u.email,
-      u.created_at,
-      u.updated_at,
       (SELECT COUNT(*) FROM tickets t WHERE t.user_id = u.user_id) AS ticket_count
     FROM users u
     WHERE u.user_id = ?
@@ -143,8 +140,7 @@ exports.updatePassenger = async (id, passengerData) => {
       nationality = COALESCE(?, nationality),
       date_of_birth = COALESCE(?, date_of_birth),
       contact_number = COALESCE(?, contact_number),
-      email = COALESCE(?, email),
-      updated_at = CURRENT_TIMESTAMP
+      email = COALESCE(?, email)
     WHERE user_id = ?
   `, [
     first_name,

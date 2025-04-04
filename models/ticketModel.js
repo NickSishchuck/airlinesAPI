@@ -292,8 +292,7 @@ exports.updateTicket = async (id, ticketData) => {
       seat_number = COALESCE(?, seat_number),
       class = COALESCE(?, class),
       price = COALESCE(?, price),
-      payment_status = COALESCE(?, payment_status),
-      updated_at = CURRENT_TIMESTAMP
+      payment_status = COALESCE(?, payment_status)
     WHERE ticket_id = ?
   `, [
     seat_number,

@@ -143,8 +143,7 @@ exports.updateFlight = async (id, flightData) => {
       arrival_time = COALESCE(?, arrival_time),
       status = COALESCE(?, status),
       gate = COALESCE(?, gate),
-      base_price = COALESCE(?, base_price),
-      updated_at = CURRENT_TIMESTAMP
+      base_price = COALESCE(?, base_price)
     WHERE flight_id = ?
   `, [
     flight_number,
