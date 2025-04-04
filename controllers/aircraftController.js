@@ -1,5 +1,5 @@
-
 const Aircraft = require('../models/aircraftModel');
+const Crew = require('../models/crewModel');
 const Flight = require('../models/flightModel');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');
@@ -53,6 +53,31 @@ exports.createAircraft = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Aircraft with this registration number already exists', 409));
   }
   
+  // If crew_id is provided, validate crew
+  if (req.body.crew_id) {
+    const crew = await Crew.getCrewById(req.body.crew_id);
+    
+    if (!crew) {
+      return next(new ErrorResponse(`Crew not found with id of ${req.body.crew_id}`, 404));
+    }
+    
+    // Validate crew composition
+    const validation = await Crew.validateCrewComposition(req.body.crew_id);
+    
+    if (!validation.valid) {
+      return next(new ErrorResponse(`Invalid crew composition: ${validation.messages.join(', ')}`, 400));
+    }
+    
+    // Check if crew is qualified for the aircraft model
+    if (req.body.model) {
+      const qualified = await Aircraft.isCrewQualifiedForAircraft(req.body.crew_id, req.body.model);
+      
+      if (!qualified) {
+        return next(new ErrorResponse('Crew is not qualified for this aircraft model', 400));
+      }
+    }
+  }
+  
   const aircraftId = await Aircraft.createAircraft(req.body);
   
   const aircraft = await Aircraft.getAircraftById(aircraftId);
@@ -79,6 +104,30 @@ exports.updateAircraft = asyncHandler(async (req, res, next) => {
     
     if (exists) {
       return next(new ErrorResponse('Aircraft with this registration number already exists', 409));
+    }
+  }
+  
+  // If updating crew_id, validate crew
+  if (req.body.crew_id && req.body.crew_id !== aircraft.crew_id) {
+    const crew = await Crew.getCrewById(req.body.crew_id);
+    
+    if (!crew) {
+      return next(new ErrorResponse(`Crew not found with id of ${req.body.crew_id}`, 404));
+    }
+    
+    // Validate crew composition
+    const validation = await Crew.validateCrewComposition(req.body.crew_id);
+    
+    if (!validation.valid) {
+      return next(new ErrorResponse(`Invalid crew composition: ${validation.messages.join(', ')}`, 400));
+    }
+    
+    // Check if crew is qualified for the aircraft model
+    const model = req.body.model || aircraft.model;
+    const qualified = await Aircraft.isCrewQualifiedForAircraft(req.body.crew_id, model);
+    
+    if (!qualified) {
+      return next(new ErrorResponse('Crew is not qualified for this aircraft model', 400));
     }
   }
   

@@ -1,4 +1,5 @@
 const Flight = require('../models/flightModel');
+const Aircraft = require('../models/aircraftModel');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');
 const { formatDate } = require('../utils/dateFormat');
@@ -56,6 +57,22 @@ exports.createFlight = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Aircraft is already scheduled for this time period', 409));
   }
   
+  // Check if the aircraft has a crew assigned
+  const aircraft = await Aircraft.getAircraftById(req.body.aircraft_id);
+  
+  if (!aircraft) {
+    return next(new ErrorResponse(`Aircraft not found with id of ${req.body.aircraft_id}`, 404));
+  }
+  
+  if (!aircraft.crew_id) {
+    return next(new ErrorResponse('Aircraft does not have a crew assigned', 400));
+  }
+  
+  // Ensure base_price is provided
+  if (!req.body.base_price) {
+    return next(new ErrorResponse('Base price is required for flight creation', 400));
+  }
+  
   const flightId = await Flight.createFlight(req.body);
   
   const flight = await Flight.getFlightById(flightId);
@@ -93,6 +110,19 @@ exports.updateFlight = asyncHandler(async (req, res, next) => {
     
     if (!isAvailable) {
       return next(new ErrorResponse('Aircraft is already scheduled for this time period', 409));
+    }
+    
+    // If changing aircraft, check if it has a crew assigned
+    if (req.body.aircraft_id && req.body.aircraft_id !== flight.aircraft_id) {
+      const aircraft = await Aircraft.getAircraftById(req.body.aircraft_id);
+      
+      if (!aircraft) {
+        return next(new ErrorResponse(`Aircraft not found with id of ${req.body.aircraft_id}`, 404));
+      }
+      
+      if (!aircraft.crew_id) {
+        return next(new ErrorResponse('Aircraft does not have a crew assigned', 400));
+      }
     }
   }
   
@@ -194,5 +224,33 @@ exports.cancelFlight = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: { status: 'canceled' }
+  });
+});
+
+// @desc    Get flight price classes
+// @route   GET /api/flights/:id/prices
+// @access  Public
+exports.getFlightPrices = asyncHandler(async (req, res, next) => {
+  const flight = await Flight.getFlightById(req.params.id);
+  
+  if (!flight) {
+    return next(new ErrorResponse(`Flight not found with id of ${req.params.id}`, 404));
+  }
+  
+  // Calculate prices for each class
+  const prices = {
+    economy: parseFloat(flight.base_price),
+    business: parseFloat(flight.base_price) * 2.5,
+    first: parseFloat(flight.base_price) * 4.0
+  };
+  
+  res.status(200).json({
+    success: true,
+    data: {
+      flight_id: flight.flight_id,
+      flight_number: flight.flight_number,
+      base_price: flight.base_price,
+      prices
+    }
   });
 });
