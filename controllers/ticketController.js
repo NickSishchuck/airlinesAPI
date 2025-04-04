@@ -36,7 +36,7 @@ exports.getTicket = asyncHandler(async (req, res, next) => {
   }
   
   // If not admin and not the ticket owner
-  if (req.user.role !== 'admin' && req.user.passenger_id !== ticket.passenger_id) {
+  if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to access this ticket', 403));
   }
   
@@ -57,7 +57,7 @@ exports.printTicket = asyncHandler(async (req, res, next) => {
   }
   
   // If not admin and not the ticket owner
-  if (req.user.role !== 'admin' && req.user.passenger_id !== ticket.passenger_id) {
+  if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to access this ticket', 403));
   }
   
@@ -73,16 +73,16 @@ exports.printTicket = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get tickets by passenger
-// @route   GET /api/tickets/passenger/:passengerId
+// @desc    Get tickets by user
+// @route   GET /api/tickets/user/:userId
 // @access  Private
-exports.getTicketsByPassenger = asyncHandler(async (req, res, next) => {
-  // If not admin and not the passenger
-  if (req.user.role !== 'admin' && req.user.passenger_id != req.params.passengerId) {
+exports.getTicketsByUser = asyncHandler(async (req, res, next) => {
+  // If not admin and not the user
+  if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id != req.params.userId) {
     return next(new ErrorResponse('Not authorized to access these tickets', 403));
   }
   
-  const tickets = await Ticket.getTicketsByPassenger(req.params.passengerId);
+  const tickets = await Ticket.getTicketsByUser(req.params.userId);
   
   res.status(200).json({
     success: true,
@@ -154,9 +154,17 @@ exports.bookTicket = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Flight is fully booked', 400));
   }
   
-  // Set passenger ID from current user if not specified
-  if (!req.body.passenger_id && req.user.passenger_id) {
-    req.body.passenger_id = req.user.passenger_id;
+  // Set user ID from current user if not specified
+  if (!req.body.user_id) {
+    req.body.user_id = req.user.user_id;
+  }
+  
+  // If price not provided, calculate based on flight base price and ticket class
+  if (!req.body.price) {
+    req.body.price = await Flight.calculateTicketPrice(
+      req.body.flight_id, 
+      req.body.class || 'economy'
+    );
   }
   
   // Create the ticket
@@ -181,7 +189,7 @@ exports.updateTicket = asyncHandler(async (req, res, next) => {
   }
   
   // If not admin and not the ticket owner
-  if (req.user.role !== 'admin' && req.user.passenger_id !== ticket.passenger_id) {
+  if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to update this ticket', 403));
   }
   
@@ -198,8 +206,16 @@ exports.updateTicket = asyncHandler(async (req, res, next) => {
     }
   }
   
+  // If changing class but not price, recalculate price
+  if (req.body.class && req.body.class !== ticket.class && !req.body.price) {
+    req.body.price = await Flight.calculateTicketPrice(
+      ticket.flight_id, 
+      req.body.class
+    );
+  }
+  
   // Regular users can only update seat
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== 'admin' && req.user.role !== 'worker') {
     req.body = { seat_number: req.body.seat_number };
   }
   
@@ -228,7 +244,7 @@ exports.deleteTicket = asyncHandler(async (req, res, next) => {
   }
   
   // If not admin and not the ticket owner
-  if (req.user.role !== 'admin' && req.user.passenger_id !== ticket.passenger_id) {
+  if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to delete this ticket', 403));
   }
   
@@ -274,5 +290,15 @@ exports.updatePaymentStatus = asyncHandler(async (req, res, next) => {
   });
 });
 
-
-//TODO tickets are not done
+// @desc    Get available seats for a flight
+// @route   GET /api/tickets/flight/:flightId/available-seats
+// @access  Public
+exports.getAvailableSeats = asyncHandler(async (req, res, next) => {
+  const availableSeats = await Ticket.getAvailableSeats(req.params.flightId);
+  
+  res.status(200).json({
+    success: true,
+    count: availableSeats.length,
+    data: availableSeats
+  });
+});

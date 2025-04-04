@@ -42,3 +42,6 @@
 2025-04-01 19:26:26 error: Not authorized to access these tickets
 2025-04-01 19:30:00 error: Not authorized to access these tickets
 2025-04-01 19:30:58 error: Not authorized to access these tickets
+2025-04-04 18:13:59 info: Server running in development mode on port 3000
+2025-04-04 18:14:00 info: MySQL Database connected to localhost:airline_transportation
+2025-04-04 18:14:00 info: MySQL Database connected to localhost:airline_transportation
