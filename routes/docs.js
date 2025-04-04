@@ -460,6 +460,613 @@ const flightDocs = {
   ]
 };
 
+
+// Crews documentation
+const crewDocs = {
+  resourceName: "Crews API",
+  description: "Endpoints for crew management, including crew assignments and validation",
+  endpoints: [
+    {
+      path: "/crews",
+      method: "GET",
+      description: "Get all crews with pagination",
+      authentication: true,
+      queryParameters: [
+        { name: "page", type: "number", description: "Page number", required: false, default: 1 },
+        { name: "limit", type: "number", description: "Items per page", required: false, default: 10 },
+        { name: "status", type: "string", description: "Filter by status (active, off-duty)", required: false }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 2,
+          pagination: {
+            page: 1,
+            limit: 10,
+            totalPages: 1,
+            totalItems: 2
+          },
+          data: [
+            {
+              crew_id: 1,
+              name: "Red Team",
+              status: "active",
+              member_count: 4,
+              aircraft_count: 1
+            },
+            {
+              crew_id: 2,
+              name: "Blue Team",
+              status: "active",
+              member_count: 4,
+              aircraft_count: 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      path: "/crews/:id",
+      method: "GET",
+      description: "Get a specific crew by ID",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {
+            crew_id: 1,
+            name: "Red Team",
+            status: "active",
+            member_count: 4,
+            aircraft_count: 1
+          }
+        }
+      }
+    },
+    {
+      path: "/crews/:id/members",
+      method: "GET",
+      description: "Get crew members assigned to a crew",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 4,
+          data: [
+            {
+              crew_member_id: 1,
+              first_name: "John",
+              last_name: "Smith",
+              role: "captain",
+              license_number: "CPT123456",
+              experience_years: 15
+            },
+            {
+              crew_member_id: 6,
+              first_name: "David",
+              last_name: "Wilson",
+              role: "pilot",
+              license_number: "PLT123456",
+              experience_years: 8
+            },
+            {
+              crew_member_id: 11,
+              first_name: "Emma",
+              last_name: "Davis",
+              role: "flight_attendant",
+              license_number: null,
+              experience_years: 5
+            },
+            {
+              crew_member_id: 12,
+              first_name: "Olena",
+              last_name: "Tkachuk",
+              role: "flight_attendant",
+              license_number: null,
+              experience_years: 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      path: "/crews/:id/members",
+      method: "POST",
+      description: "Assign a crew member to a crew",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true }
+      ],
+      requestBody: {
+        contentType: "application/json",
+        schema: {
+          crew_member_id: { type: "number", required: true }
+        },
+        example: {
+          crew_member_id: 8
+        }
+      },
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 5,
+          data: [
+            {
+              crew_member_id: 1,
+              first_name: "John",
+              last_name: "Smith",
+              role: "captain",
+              license_number: "CPT123456",
+              experience_years: 15
+            },
+            // ... other members ...
+            {
+              crew_member_id: 8,
+              first_name: "Igor",
+              last_name: "Petrov",
+              role: "pilot",
+              license_number: "PLT345678",
+              experience_years: 10
+            }
+          ]
+        }
+      }
+    },
+    {
+      path: "/crews/:id/members/:memberId",
+      method: "DELETE",
+      description: "Remove a crew member from a crew",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true },
+        { name: "memberId", type: "number", description: "Crew Member ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 3,
+          data: [
+            {
+              crew_member_id: 1,
+              first_name: "John",
+              last_name: "Smith",
+              role: "captain",
+              license_number: "CPT123456",
+              experience_years: 15
+            },
+            // ... remaining members ...
+          ]
+        }
+      }
+    },
+    {
+      path: "/crews/:id/validate",
+      method: "GET",
+      description: "Validate crew composition",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {
+            valid: true,
+            messages: []
+          }
+        }
+      }
+    },
+    {
+      path: "/crews/:id/aircraft",
+      method: "GET",
+      description: "Get aircraft assigned to a crew",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 1,
+          data: [
+            {
+              aircraft_id: 1,
+              model: "Boeing 737-800",
+              registration_number: "UR-PSA",
+              capacity: 189,
+              status: "active"
+            }
+          ]
+        }
+      }
+    },
+    {
+      path: "/crews",
+      method: "POST",
+      description: "Create a new crew",
+      authentication: true,
+      requestBody: {
+        contentType: "application/json",
+        schema: {
+          name: { type: "string", required: true },
+          status: { type: "string", required: false, default: "active" }
+        },
+        example: {
+          name: "Orange Team",
+          status: "active"
+        }
+      },
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {
+            crew_id: 6,
+            name: "Orange Team",
+            status: "active",
+            member_count: 0,
+            aircraft_count: 0
+          }
+        }
+      }
+    },
+    {
+      path: "/crews/:id",
+      method: "PUT",
+      description: "Update a crew",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true }
+      ],
+      requestBody: {
+        contentType: "application/json",
+        schema: {
+          name: { type: "string", required: false },
+          status: { type: "string", required: false }
+        },
+        example: {
+          name: "Orange Team Alpha",
+          status: "off-duty"
+        }
+      },
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {
+            crew_id: 6,
+            name: "Orange Team Alpha",
+            status: "off-duty",
+            member_count: 0,
+            aircraft_count: 0
+          }
+        }
+      }
+    },
+    {
+      path: "/crews/:id",
+      method: "DELETE",
+      description: "Delete a crew",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {}
+        }
+      }
+    }
+  ]
+};
+
+// Crew Members documentation
+const crewMemberDocs = {
+  resourceName: "Crew Members API",
+  description: "Endpoints for managing individual crew members (captains, pilots, flight attendants)",
+  endpoints: [
+    {
+      path: "/crew-members",
+      method: "GET",
+      description: "Get all crew members with pagination",
+      authentication: true,
+      queryParameters: [
+        { name: "page", type: "number", description: "Page number", required: false, default: 1 },
+        { name: "limit", type: "number", description: "Items per page", required: false, default: 10 },
+        { name: "role", type: "string", description: "Filter by role (captain, pilot, flight_attendant)", required: false }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 2,
+          pagination: {
+            page: 1,
+            limit: 10,
+            totalPages: 1,
+            totalItems: 2
+          },
+          data: [
+            {
+              crew_member_id: 1,
+              first_name: "John",
+              last_name: "Smith",
+              role: "captain",
+              license_number: "CPT123456",
+              date_of_birth: "1975-05-10",
+              experience_years: 15,
+              contact_number: "+380501234567",
+              email: "john.smith@airline.com",
+              crew_count: 1
+            },
+            {
+              crew_member_id: 2,
+              first_name: "Maria",
+              last_name: "Johnson",
+              role: "captain",
+              license_number: "CPT789012",
+              date_of_birth: "1980-03-22",
+              experience_years: 12,
+              contact_number: "+380502345678",
+              email: "maria.johnson@airline.com",
+              crew_count: 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      path: "/crew-members/:id",
+      method: "GET",
+      description: "Get a specific crew member by ID",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew Member ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {
+            crew_member_id: 1,
+            first_name: "John",
+            last_name: "Smith",
+            role: "captain",
+            license_number: "CPT123456",
+            date_of_birth: "1975-05-10",
+            experience_years: 15,
+            contact_number: "+380501234567",
+            email: "john.smith@airline.com",
+            crew_count: 1
+          }
+        }
+      }
+    },
+    {
+      path: "/crew-members/:id/assignments",
+      method: "GET",
+      description: "Get crews that a crew member is assigned to",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew Member ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 1,
+          data: [
+            {
+              crew_id: 1,
+              name: "Red Team",
+              status: "active",
+              member_count: 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      path: "/crew-members/:id/flights",
+      method: "GET",
+      description: "Get flights for a crew member",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew Member ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          count: 2,
+          data: [
+            {
+              flight_id: 1,
+              flight_number: "PS101",
+              origin: "Kyiv",
+              destination: "Lviv",
+              departure_time: "2025-04-05T08:00:00.000Z",
+              arrival_time: "2025-04-05T09:10:00.000Z",
+              status: "scheduled",
+              aircraft_model: "Boeing 737-800",
+              registration_number: "UR-PSA"
+            },
+            {
+              flight_id: 2,
+              flight_number: "PS102",
+              origin: "Kyiv",
+              destination: "Odesa",
+              departure_time: "2025-04-05T12:00:00.000Z",
+              arrival_time: "2025-04-05T13:05:00.000Z",
+              status: "scheduled",
+              aircraft_model: "Boeing 737-800",
+              registration_number: "UR-PSA"
+            }
+          ]
+        }
+      }
+    },
+    {
+      path: "/crew-members",
+      method: "POST",
+      description: "Create a new crew member",
+      authentication: true,
+      requestBody: {
+        contentType: "application/json",
+        schema: {
+          first_name: { type: "string", required: true },
+          last_name: { type: "string", required: true },
+          role: { type: "string", required: true },
+          license_number: { type: "string", required: false },
+          date_of_birth: { type: "string", required: true },
+          experience_years: { type: "number", required: true },
+          contact_number: { type: "string", required: true },
+          email: { type: "string", required: true }
+        },
+        example: {
+          first_name: "Alex",
+          last_name: "Johnson",
+          role: "pilot",
+          license_number: "PLT987654",
+          date_of_birth: "1985-08-15",
+          experience_years: 8,
+          contact_number: "+380509876543",
+          email: "alex.johnson@airline.com"
+        }
+      },
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {
+            crew_member_id: 19,
+            first_name: "Alex",
+            last_name: "Johnson",
+            role: "pilot",
+            license_number: "PLT987654",
+            date_of_birth: "1985-08-15",
+            experience_years: 8,
+            contact_number: "+380509876543",
+            email: "alex.johnson@airline.com",
+            crew_count: 0
+          }
+        }
+      }
+    },
+    {
+      path: "/crew-members/:id",
+      method: "PUT",
+      description: "Update a crew member",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew Member ID", required: true }
+      ],
+      requestBody: {
+        contentType: "application/json",
+        schema: {
+          first_name: { type: "string", required: false },
+          last_name: { type: "string", required: false },
+          role: { type: "string", required: false },
+          license_number: { type: "string", required: false },
+          date_of_birth: { type: "string", required: false },
+          experience_years: { type: "number", required: false },
+          contact_number: { type: "string", required: false },
+          email: { type: "string", required: false }
+        },
+        example: {
+          experience_years: 9,
+          contact_number: "+380509876544"
+        }
+      },
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {
+            crew_member_id: 19,
+            first_name: "Alex",
+            last_name: "Johnson",
+            role: "pilot",
+            license_number: "PLT987654",
+            date_of_birth: "1985-08-15",
+            experience_years: 9,
+            contact_number: "+380509876544",
+            email: "alex.johnson@airline.com",
+            crew_count: 0
+          }
+        }
+      }
+    },
+    {
+      path: "/crew-members/:id",
+      method: "DELETE",
+      description: "Delete a crew member",
+      authentication: true,
+      pathParameters: [
+        { name: "id", type: "number", description: "Crew Member ID", required: true }
+      ],
+      response: {
+        contentType: "application/json",
+        example: {
+          success: true,
+          data: {}
+        }
+      }
+    }
+  ]
+};
+
+// Update flights documentation section to include base_price information
+// In a complete implementation, you would update other sections as well
+
+/**
+ * Register new documentation routes
+ * 
+ * Route handler for Crews documentation
+ * GET /api/docs/crews
+ */
+router.get('/docs/crews', (req, res) => {
+  res.json(crewDocs);
+});
+
+/**
+ * Route handler for Crew Members documentation
+ * GET /api/docs/crew-members
+ */
+router.get('/docs/crew-members', (req, res) => {
+  res.json(crewMemberDocs);
+});
+
+// Add these resources to the main documentation object
+apiDocumentation.resources.push(
+  {
+    name: "Crews",
+    description: "Endpoints for crew management including assignment and validation",
+    docPath: "/docs/crews"
+  },
+  {
+    name: "Crew Members",
+    description: "Endpoints for managing individual crew members (captains, pilots, flight attendants)",
+    docPath: "/docs/crew-members"
+  }
+);
+
 // Tickets documentation
 const ticketDocs = {
   resourceName: "Tickets API",

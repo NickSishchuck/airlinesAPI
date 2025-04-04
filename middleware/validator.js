@@ -42,14 +42,18 @@ exports.validateFlight = [
       return true;
     }),
   
+  check('base_price')
+    .isFloat({ min: 0 })
+    .withMessage('Base price must be a positive number'),
+  
   validateResults
 ];
 
 // Ticket input validation
 exports.validateTicket = [
-  check('passenger_id')
+  check('user_id')
     .isInt({ min: 1 })
-    .withMessage('Valid passenger ID is required'),
+    .withMessage('Valid user ID is required'),
   
   check('flight_id')
     .isInt({ min: 1 })
@@ -62,10 +66,6 @@ exports.validateTicket = [
     .matches(/^\d{1,2}[A-Z]$/i)
     .withMessage('Seat number must be in format like 1A, 24C'),
   
-  check('price')
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
-  
   check('class')
     .isIn(['economy', 'business', 'first'])
     .withMessage('Class must be economy, business, or first'),
@@ -73,8 +73,8 @@ exports.validateTicket = [
   validateResults
 ];
 
-// Passenger input validation
-exports.validatePassenger = [
+// User input validation
+exports.validateUser = [
   check('first_name')
     .not()
     .isEmpty()
@@ -90,18 +90,15 @@ exports.validatePassenger = [
     .withMessage('Last name must be between 2 and 50 characters'),
   
   check('passport_number')
-    .not()
-    .isEmpty()
-    .withMessage('Passport number is required')
+    .optional()
     .matches(/^[A-Z0-9]{6,12}$/i)
     .withMessage('Passport number must be 6-12 alphanumeric characters'),
   
   check('nationality')
-    .not()
-    .isEmpty()
-    .withMessage('Nationality is required'),
+    .optional(),
   
   check('date_of_birth')
+    .optional()
     .isISO8601()
     .withMessage('Date of birth must be a valid date')
     .custom(value => {
@@ -114,6 +111,90 @@ exports.validatePassenger = [
   
   check('email')
     .optional()
+    .isEmail()
+    .withMessage('Please include a valid email'),
+  
+  validateResults
+];
+
+// Crew validation
+exports.validateCrew = [
+  check('name')
+    .not()
+    .isEmpty()
+    .withMessage('Crew name is required')
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Crew name must be between 2 and 100 characters'),
+  
+  check('status')
+    .optional()
+    .isIn(['active', 'off-duty'])
+    .withMessage('Status must be active or off-duty'),
+  
+  validateResults
+];
+
+// Crew Member validation
+exports.validateCrewMember = [
+  check('first_name')
+    .not()
+    .isEmpty()
+    .withMessage('First name is required')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('First name must be between 2 and 50 characters'),
+  
+  check('last_name')
+    .not()
+    .isEmpty()
+    .withMessage('Last name is required')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Last name must be between 2 and 50 characters'),
+  
+  check('role')
+    .not()
+    .isEmpty()
+    .withMessage('Role is required')
+    .isIn(['captain', 'pilot', 'flight_attendant'])
+    .withMessage('Role must be captain, pilot, or flight_attendant'),
+  
+  check('license_number')
+    .custom((value, { req }) => {
+      // License number is required for captains and pilots
+      if ((req.body.role === 'captain' || req.body.role === 'pilot') && !value) {
+        throw new Error('License number is required for captains and pilots');
+      }
+      
+      // If provided, validate format
+      if (value && !/^[A-Z]{3}\d{6}$/i.test(value)) {
+        throw new Error('License number must be in format XXX123456');
+      }
+      
+      return true;
+    }),
+  
+  check('date_of_birth')
+    .isISO8601()
+    .withMessage('Date of birth must be a valid date')
+    .custom(value => {
+      const age = (new Date() - new Date(value)) / (365.25 * 24 * 60 * 60 * 1000);
+      if (age < 18) {
+        throw new Error('Crew member must be at least 18 years old');
+      }
+      return true;
+    }),
+  
+  check('experience_years')
+    .isInt({ min: 0 })
+    .withMessage('Experience years must be a non-negative integer'),
+  
+  check('contact_number')
+    .not()
+    .isEmpty()
+    .withMessage('Contact number is required')
+    .matches(/^\+?[0-9]{10,15}$/)
+    .withMessage('Contact number must be a valid phone number'),
+  
+  check('email')
     .isEmail()
     .withMessage('Please include a valid email'),
   

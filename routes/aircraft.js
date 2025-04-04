@@ -13,18 +13,16 @@ const { protect, authorize } = require('../middleware/auth');
 
 // Aircraft flights
 router.route('/:id/flights')
-  .get(protect, authorize('admin', 'staff'), getAircraftFlights);
+  .get(protect, authorize('admin', 'worker'), getAircraftFlights);
 
 // Main resource routes
 router.route('/')
-  .get(protect, authorize('admin', 'staff'), getAircraft)
+  .get(protect, authorize('admin', 'worker'), getAircraft)
   .post(protect, authorize('admin'), createAircraft);
 
 router.route('/:id')
-  .get(protect, authorize('admin', 'staff'), getSingleAircraft)
+  .get(protect, authorize('admin', 'worker'), getSingleAircraft)
   .put(protect, authorize('admin'), updateAircraft)
   .delete(protect, authorize('admin'), deleteAircraft);
 
 module.exports = router;
-
-//TODO manage the plane seat's classes(first, second, etc)

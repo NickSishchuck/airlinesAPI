@@ -25,10 +25,10 @@ if (process.env.NODE_ENV === 'development') {
 
 // Mount routers
 app.use('/api/routes', require('./routes/routes'));
-app.use('/api/captains', require('./routes/captains'));
+app.use('/api/crews', require('./routes/crews'));
+app.use('/api/crew-members', require('./routes/crewMembers'));
 app.use('/api/aircraft', require('./routes/aircraft'));
 app.use('/api/flights', require('./routes/flights'));
-app.use('/api/passengers', require('./routes/passengers'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/auth', require('./routes/auth')); 
 app.use('/api/users', require('./routes/users'));

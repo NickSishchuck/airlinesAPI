@@ -8,7 +8,8 @@ const {
   deleteFlight,
   searchFlightsByRouteAndDate,
   generateFlightSchedule,
-  cancelFlight
+  cancelFlight,
+  getFlightPrices
 } = require('../controllers/flightController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -24,6 +25,10 @@ router.route('/schedule/generate')
 router.route('/:id/cancel')
   .patch(protect, authorize('admin', 'worker'), cancelFlight);
 
+// Flight prices route
+router.route('/:id/prices')
+  .get(getFlightPrices);
+
 // Main resource routes
 router.route('/')
   .get(getFlights)
@@ -35,5 +40,3 @@ router.route('/:id')
   .delete(protect, authorize('admin'), deleteFlight);
 
 module.exports = router;
-
-//TODO add price to flight
