@@ -1,6 +1,5 @@
-// TODO Change passengers to users since I merged those two tables
-
 const { pool } = require('../config/database');
+const Flight = require('./flightModel');
 
 /**
  * Get all tickets with pagination
@@ -67,17 +66,20 @@ exports.getTicketById = async (id) => {
       f.arrival_time,
       f.status AS flight_status,
       f.gate,
+      f.base_price,
       r.origin,
       r.destination,
       CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
       u.passport_number,
       a.model AS aircraft_model,
-      a.registration_number
+      a.registration_number,
+      c.name AS crew_name
     FROM tickets t
     JOIN flights f ON t.flight_id = f.flight_id
     JOIN routes r ON f.route_id = r.route_id
     JOIN users u ON t.user_id = u.user_id
     JOIN aircraft a ON f.aircraft_id = a.aircraft_id
+    LEFT JOIN crews c ON a.crew_id = c.crew_id
     WHERE t.ticket_id = ?
   `, [id]);
   
@@ -90,16 +92,48 @@ exports.getTicketById = async (id) => {
  * @returns {Promise<Object>} Formatted ticket
  */
 exports.generateTicket = async (id) => {
-  const [rows] = await pool.query(`CALL generate_ticket(?)`, [id]);
-  return rows[0][0];
+  const [rows] = await pool.query(`
+    SELECT 
+      t.ticket_id,
+      t.seat_number,
+      t.class,
+      t.price,
+      f.flight_number,
+      f.departure_time,
+      f.arrival_time,
+      r.origin,
+      r.destination,
+      a.model AS aircraft_model,
+      CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
+      u.passport_number,
+      a.registration_number AS aircraft_registration,
+      f.gate,
+      c.name AS crew_name
+    FROM 
+      tickets t
+    JOIN 
+      flights f ON t.flight_id = f.flight_id
+    JOIN 
+      routes r ON f.route_id = r.route_id
+    JOIN 
+      aircraft a ON f.aircraft_id = a.aircraft_id
+    JOIN 
+      users u ON t.user_id = u.user_id
+    LEFT JOIN
+      crews c ON a.crew_id = c.crew_id
+    WHERE 
+      t.ticket_id = ?
+  `, [id]);
+  
+  return rows[0];
 };
 
 /**
- * Get tickets by passenger ID
- * @param {number} passengerId - Passenger ID
- * @returns {Promise<Array>} Passenger's tickets
+ * Get tickets by user ID
+ * @param {number} userId - User ID
+ * @returns {Promise<Array>} User's tickets
  */
-exports.getTicketsByPassenger = async (passengerId) => {
+exports.getTicketsByUser = async (userId) => {
   const [rows] = await pool.query(`
     SELECT 
       t.ticket_id,
@@ -119,7 +153,7 @@ exports.getTicketsByPassenger = async (passengerId) => {
     JOIN routes r ON f.route_id = r.route_id
     WHERE t.user_id = ?
     ORDER BY f.departure_time
-  `, [passengerId]);
+  `, [userId]);
   
   return rows;
 };
@@ -136,8 +170,8 @@ exports.getTicketsByFlight = async (flightId) => {
       t.seat_number,
       t.class,
       t.price,
-      CONCAT(p.first_name, ' ', p.last_name) AS passenger_name,
-      p.passport_number,
+      CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
+      u.passport_number,
       t.payment_status
     FROM tickets t
     JOIN users u ON t.user_id = u.user_id
@@ -155,10 +189,36 @@ exports.getTicketsByFlight = async (flightId) => {
  * @returns {Promise<Array>} Sales report
  */
 exports.generateTicketSalesReport = async (startDate, endDate) => {
-  const [rows] = await pool.query(`CALL generate_ticket_sales_report(?, ?)`, 
-    [startDate, endDate]);
+  const [rows] = await pool.query(`
+    SELECT 
+      f.flight_number,
+      r.origin,
+      r.destination,
+      DATE(f.departure_time) AS flight_date,
+      COUNT(t.ticket_id) AS tickets_sold,
+      SUM(t.price) AS total_revenue,
+      t.class AS ticket_class,
+      a.capacity AS total_capacity,
+      ROUND((COUNT(t.ticket_id) / a.capacity * 100), 2) AS occupancy_percentage,
+      f.base_price
+    FROM 
+      tickets t
+    JOIN 
+      flights f ON t.flight_id = f.flight_id
+    JOIN 
+      routes r ON f.route_id = r.route_id
+    JOIN 
+      aircraft a ON f.aircraft_id = a.aircraft_id
+    WHERE 
+      DATE(t.booking_date) BETWEEN ? AND ? 
+      AND t.payment_status = 'completed'
+    GROUP BY 
+      f.flight_id, t.class
+    ORDER BY 
+      f.departure_time, t.class
+  `, [startDate, endDate]);
   
-  return rows[0];
+  return rows;
 };
 
 /**
@@ -167,8 +227,8 @@ exports.generateTicketSalesReport = async (startDate, endDate) => {
  * @returns {Promise<number>} ID of the created ticket
  */
 exports.createTicket = async (ticketData) => {
-  const {
-    passenger_id,
+  let {
+    user_id,
     flight_id,
     seat_number,
     class: ticketClass = 'economy',
@@ -176,13 +236,18 @@ exports.createTicket = async (ticketData) => {
     payment_status = 'pending'
   } = ticketData;
   
+  // If price is not provided, calculate it based on flight base price and class
+  if (!price) {
+    price = await Flight.calculateTicketPrice(flight_id, ticketClass);
+  }
+  
   const [result] = await pool.query(`
     INSERT INTO tickets (
       user_id, flight_id, seat_number, 
       class, price, payment_status
     ) VALUES (?, ?, ?, ?, ?, ?)
   `, [
-    passenger_id,
+    user_id,
     flight_id,
     seat_number,
     ticketClass,
@@ -207,6 +272,20 @@ exports.updateTicket = async (id, ticketData) => {
     payment_status
   } = ticketData;
   
+  // If updating the class and not providing a price, we need to recalculate
+  let updatedPrice = price;
+  if (ticketClass && !price) {
+    // Get the flight ID from the ticket
+    const [ticketRows] = await pool.query(
+      'SELECT flight_id FROM tickets WHERE ticket_id = ?',
+      [id]
+    );
+    
+    if (ticketRows.length > 0) {
+      updatedPrice = await Flight.calculateTicketPrice(ticketRows[0].flight_id, ticketClass);
+    }
+  }
+  
   const [result] = await pool.query(`
     UPDATE tickets
     SET
@@ -219,7 +298,7 @@ exports.updateTicket = async (id, ticketData) => {
   `, [
     seat_number,
     ticketClass,
-    price,
+    updatedPrice,
     payment_status,
     id
   ]);
@@ -271,3 +350,101 @@ exports.updatePaymentStatus = async (id, status) => {
   
   return result.affectedRows > 0;
 };
+
+/**
+ * Get available seats for a flight
+ * @param {number} flightId - Flight ID
+ * @returns {Promise<Array>} Available seats
+ */
+exports.getAvailableSeats = async (flightId) => {
+  // First get the aircraft capacity for this flight
+  const [flightRows] = await pool.query(`
+    SELECT 
+      a.capacity,
+      a.model
+    FROM flights f
+    JOIN aircraft a ON f.aircraft_id = a.aircraft_id
+    WHERE f.flight_id = ?
+  `, [flightId]);
+  
+  if (flightRows.length === 0) {
+    throw new Error('Flight not found');
+  }
+  
+  const capacity = flightRows[0].capacity;
+  const model = flightRows[0].model;
+  
+  // Get currently booked seats
+  const [bookedRows] = await pool.query(`
+    SELECT seat_number
+    FROM tickets
+    WHERE flight_id = ?
+  `, [flightId]);
+  
+  const bookedSeats = bookedRows.map(row => row.seat_number);
+  
+  // Generate all possible seats based on aircraft model and capacity
+  const allSeats = generateSeatMap(model, capacity);
+  
+  // Filter out booked seats
+  return allSeats.filter(seat => !bookedSeats.includes(seat));
+};
+
+/**
+ * Helper function to generate seat map based on aircraft model and capacity
+ * @param {string} model - Aircraft model
+ * @param {number} capacity - Aircraft capacity
+ * @returns {Array} Array of seat numbers
+ */
+function generateSeatMap(model, capacity) {
+  const seats = [];
+  
+  // Different aircraft models have different seating layouts
+  // This is a simplified example
+  
+  // Rows typically go from 1 to N
+  const rows = Math.ceil(capacity / 6); // Assuming 6 seats per row
+  
+  // Seat letters are typically A-F for narrow-body aircraft
+  const seatLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+  
+  // Some aircraft models might have different layouts
+  if (model.includes('A320') || model.includes('737')) {
+    // Standard 3-3 configuration
+    for (let row = 1; row <= rows; row++) {
+      for (const letter of seatLetters) {
+        seats.push(`${row}${letter}`);
+        
+        // Stop if we've reached capacity
+        if (seats.length >= capacity) {
+          return seats;
+        }
+      }
+    }
+  } else if (model.includes('E190')) {
+    // 2-2 configuration
+    const e190Letters = ['A', 'B', 'C', 'D']; // 2-2 configuration
+    for (let row = 1; row <= rows; row++) {
+      for (const letter of e190Letters) {
+        seats.push(`${row}${letter}`);
+        
+        if (seats.length >= capacity) {
+          return seats;
+        }
+      }
+    }
+  } else {
+    // Generic configuration
+    for (let row = 1; row <= rows; row++) {
+      for (const letter of seatLetters) {
+        seats.push(`${row}${letter}`);
+        
+        if (seats.length >= capacity) {
+          return seats;
+        }
+      }
+    }
+  }
+  
+  return seats;
+}

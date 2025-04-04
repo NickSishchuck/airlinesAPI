@@ -1,5 +1,6 @@
 const { pool } = require('../config/database');
 
+
 /**
  * Get all captains with pagination
  * @param {number} page - Page number

@@ -1,10 +1,11 @@
-
 const { pool } = require('../config/database');
 const dateFormat = require('../utils/dateFormat');
 
 /**
- * Get all flights
- * @returns {Promise<Array>} Array of flights
+ * Get all flights with pagination
+ * @param {number} page - Page number
+ * @param {number} limit - Items per page
+ * @returns {Promise<Object>} Paginated flights
  */
 exports.getAllFlights = async (page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
@@ -19,11 +20,14 @@ exports.getAllFlights = async (page = 1, limit = 10) => {
       f.arrival_time,
       f.status,
       f.gate,
+      f.base_price,
       a.model AS aircraft_model,
-      a.registration_number
+      a.registration_number,
+      c.name AS crew_name
     FROM flights f
     JOIN routes r ON f.route_id = r.route_id
     JOIN aircraft a ON f.aircraft_id = a.aircraft_id
+    LEFT JOIN crews c ON a.crew_id = c.crew_id
     ORDER BY f.departure_time
     LIMIT ? OFFSET ?
   `, [limit, offset]);
@@ -60,14 +64,15 @@ exports.getFlightById = async (id) => {
       f.arrival_time,
       f.status,
       f.gate,
-      CONCAT(c.first_name, ' ', c.last_name) AS captain_name,
-      c.captain_id,
+      f.base_price,
+      c.crew_id,
+      c.name AS crew_name,
       (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS booked_seats,
       a.capacity AS total_capacity
     FROM flights f
     JOIN routes r ON f.route_id = r.route_id
     JOIN aircraft a ON f.aircraft_id = a.aircraft_id
-    JOIN captains c ON a.captain_id = c.captain_id
+    LEFT JOIN crews c ON a.crew_id = c.crew_id
     WHERE f.flight_id = ?
   `, [id]);
   
@@ -87,14 +92,15 @@ exports.createFlight = async (flightData) => {
     departure_time,
     arrival_time,
     status = 'scheduled',
-    gate
+    gate,
+    base_price
   } = flightData;
   
   const [result] = await pool.query(`
     INSERT INTO flights (
       flight_number, route_id, aircraft_id, 
-      departure_time, arrival_time, status, gate
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      departure_time, arrival_time, status, gate, base_price
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `, [
     flight_number,
     route_id,
@@ -102,7 +108,8 @@ exports.createFlight = async (flightData) => {
     departure_time,
     arrival_time,
     status,
-    gate
+    gate,
+    base_price
   ]);
   
   return result.insertId;
@@ -122,7 +129,8 @@ exports.updateFlight = async (id, flightData) => {
     departure_time,
     arrival_time,
     status,
-    gate
+    gate,
+    base_price
   } = flightData;
   
   const [result] = await pool.query(`
@@ -135,6 +143,7 @@ exports.updateFlight = async (id, flightData) => {
       arrival_time = COALESCE(?, arrival_time),
       status = COALESCE(?, status),
       gate = COALESCE(?, gate),
+      base_price = COALESCE(?, base_price),
       updated_at = CURRENT_TIMESTAMP
     WHERE flight_id = ?
   `, [
@@ -145,6 +154,7 @@ exports.updateFlight = async (id, flightData) => {
     arrival_time,
     status,
     gate,
+    base_price,
     id
   ]);
   
@@ -169,10 +179,35 @@ exports.deleteFlight = async (id) => {
  * @returns {Promise<Array>} Matching flights
  */
 exports.searchFlightsByRouteAndDate = async (origin, destination, date) => {
-  const [rows] = await pool.query(`CALL search_flights_by_route_and_date(?, ?, ?)`, 
-    [origin, destination, date]);
+  const [rows] = await pool.query(`
+    SELECT 
+      f.flight_id,
+      f.flight_number,
+      r.origin,
+      r.destination,
+      f.departure_time,
+      f.arrival_time,
+      f.status,
+      f.base_price,
+      a.model AS aircraft_model,
+      (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS booked_seats,
+      a.capacity AS total_seats
+    FROM 
+      flights f
+    JOIN 
+      routes r ON f.route_id = r.route_id
+    JOIN 
+      aircraft a ON f.aircraft_id = a.aircraft_id
+    WHERE 
+      r.origin = ? AND 
+      r.destination = ? AND 
+      DATE(f.departure_time) = ? AND
+      f.status != 'canceled'
+    ORDER BY 
+      f.departure_time
+  `, [origin, destination, date]);
   
-  return rows[0];
+  return rows;
 };
 
 /**
@@ -182,10 +217,35 @@ exports.searchFlightsByRouteAndDate = async (origin, destination, date) => {
  * @returns {Promise<Array>} Flight schedule
  */
 exports.generateFlightSchedule = async (startDate, endDate) => {
-  const [rows] = await pool.query(`CALL generate_flight_schedule(?, ?)`, 
-    [startDate, endDate]);
+  const [rows] = await pool.query(`
+    SELECT 
+      f.flight_id,
+      f.flight_number,
+      r.origin,
+      r.destination,
+      f.departure_time,
+      f.arrival_time,
+      f.status,
+      f.base_price,
+      a.registration_number AS aircraft,
+      c.name AS crew_name,
+      (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS passengers_count,
+      a.capacity AS total_capacity
+    FROM 
+      flights f
+    JOIN 
+      routes r ON f.route_id = r.route_id
+    JOIN 
+      aircraft a ON f.aircraft_id = a.aircraft_id
+    LEFT JOIN 
+      crews c ON a.crew_id = c.crew_id
+    WHERE 
+      DATE(f.departure_time) BETWEEN ? AND ?
+    ORDER BY 
+      f.departure_time
+  `, [startDate, endDate]);
   
-  return rows[0];
+  return rows;
 };
 
 /**
@@ -235,4 +295,35 @@ exports.updateFlightStatus = async (id, status) => {
   );
   
   return result.affectedRows > 0;
+};
+
+/**
+ * Calculate ticket price based on flight base price and class
+ * @param {number} flightId - Flight ID
+ * @param {string} ticketClass - Ticket class (economy, business, first)
+ * @returns {Promise<number>} Calculated ticket price
+ */
+exports.calculateTicketPrice = async (flightId, ticketClass) => {
+  // Get the flight base price
+  const [flightRows] = await pool.query(
+    'SELECT base_price FROM flights WHERE flight_id = ?',
+    [flightId]
+  );
+  
+  if (flightRows.length === 0) {
+    throw new Error('Flight not found');
+  }
+  
+  const basePrice = flightRows[0].base_price;
+  
+  // Apply multiplier based on class
+  const classMultipliers = {
+    economy: 1.0,
+    business: 2.5,
+    first: 4.0
+  };
+  
+  const multiplier = classMultipliers[ticketClass] || 1.0;
+  
+  return basePrice * multiplier;
 };

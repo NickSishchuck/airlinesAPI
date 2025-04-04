@@ -16,14 +16,14 @@ exports.getAllAircraft = async (page = 1, limit = 10) => {
       a.registration_number,
       a.capacity,
       a.manufacturing_year,
-      a.captain_id,
+      a.crew_id,
       a.status,
-      CONCAT(c.first_name, ' ', c.last_name) AS captain_name,
-      c.license_number AS captain_license,
+      c.name AS crew_name,
+      (SELECT COUNT(*) FROM crew_assignments ca WHERE ca.crew_id = c.crew_id) AS crew_size,
       a.created_at,
       a.updated_at
     FROM aircraft a
-    JOIN captains c ON a.captain_id = c.captain_id
+    LEFT JOIN crews c ON a.crew_id = c.crew_id
     ORDER BY a.registration_number
     LIMIT ? OFFSET ?
   `, [limit, offset]);
@@ -53,14 +53,14 @@ exports.getAircraftById = async (id) => {
       a.registration_number,
       a.capacity,
       a.manufacturing_year,
-      a.captain_id,
+      a.crew_id,
       a.status,
-      CONCAT(c.first_name, ' ', c.last_name) AS captain_name,
-      c.license_number AS captain_license,
+      c.name AS crew_name,
+      c.status AS crew_status,
       a.created_at,
       a.updated_at
     FROM aircraft a
-    JOIN captains c ON a.captain_id = c.captain_id
+    LEFT JOIN crews c ON a.crew_id = c.crew_id
     WHERE a.aircraft_id = ?
   `, [id]);
   
@@ -97,21 +97,21 @@ exports.createAircraft = async (aircraftData) => {
     registration_number,
     capacity,
     manufacturing_year,
-    captain_id,
+    crew_id,
     status = 'active'
   } = aircraftData;
   
   const [result] = await pool.query(`
     INSERT INTO aircraft (
       model, registration_number, capacity, 
-      manufacturing_year, captain_id, status
+      manufacturing_year, crew_id, status
     ) VALUES (?, ?, ?, ?, ?, ?)
   `, [
     model,
     registration_number,
     capacity,
     manufacturing_year,
-    captain_id,
+    crew_id,
     status
   ]);
   
@@ -130,7 +130,7 @@ exports.updateAircraft = async (id, aircraftData) => {
     registration_number,
     capacity,
     manufacturing_year,
-    captain_id,
+    crew_id,
     status
   } = aircraftData;
   
@@ -141,7 +141,7 @@ exports.updateAircraft = async (id, aircraftData) => {
       registration_number = COALESCE(?, registration_number),
       capacity = COALESCE(?, capacity),
       manufacturing_year = COALESCE(?, manufacturing_year),
-      captain_id = COALESCE(?, captain_id),
+      crew_id = COALESCE(?, crew_id),
       status = COALESCE(?, status),
       updated_at = CURRENT_TIMESTAMP
     WHERE aircraft_id = ?
@@ -150,7 +150,7 @@ exports.updateAircraft = async (id, aircraftData) => {
     registration_number,
     capacity,
     manufacturing_year,
-    captain_id,
+    crew_id,
     status,
     id
   ]);
@@ -169,11 +169,11 @@ exports.deleteAircraft = async (id) => {
 };
 
 /**
- * Get aircraft by captain ID
- * @param {number} captainId - Captain ID
- * @returns {Promise<Array>} Aircraft assigned to captain
+ * Get aircraft by crew ID
+ * @param {number} crewId - Crew ID
+ * @returns {Promise<Array>} Aircraft assigned to crew
  */
-exports.getAircraftByCaptain = async (captainId) => {
+exports.getAircraftByCrew = async (crewId) => {
   const [rows] = await pool.query(`
     SELECT 
       aircraft_id,
@@ -182,8 +182,8 @@ exports.getAircraftByCaptain = async (captainId) => {
       capacity,
       status
     FROM aircraft
-    WHERE captain_id = ?
-  `, [captainId]);
+    WHERE crew_id = ?
+  `, [crewId]);
   
   return rows;
 };
@@ -204,7 +204,8 @@ exports.getAircraftFlights = async (aircraftId, activeOnly = false) => {
       f.departure_time,
       f.arrival_time,
       f.status,
-      f.gate
+      f.gate,
+      f.base_price
     FROM flights f
     JOIN routes r ON f.route_id = r.route_id
     WHERE f.aircraft_id = ?
@@ -219,4 +220,45 @@ exports.getAircraftFlights = async (aircraftId, activeOnly = false) => {
   const [rows] = await pool.query(query, [aircraftId]);
   
   return rows;
+};
+
+/**
+ * Check if crew is qualified for aircraft
+ * @param {number} crewId - Crew ID
+ * @param {string} aircraftModel - Aircraft model
+ * @returns {Promise<boolean>} Whether crew is qualified
+ */
+exports.isCrewQualifiedForAircraft = async (crewId, aircraftModel) => {
+  // Get crew members with their roles
+  const [members] = await pool.query(`
+    SELECT 
+      cm.crew_member_id,
+      cm.role,
+      cm.experience_years
+    FROM crew_members cm
+    JOIN crew_assignments ca ON cm.crew_member_id = ca.crew_member_id
+    WHERE ca.crew_id = ?
+  `, [crewId]);
+  
+  // Basic validation - need at least 1 captain, 1 pilot, 2 flight attendants
+  const roleCounts = {
+    captain: 0,
+    pilot: 0,
+    flight_attendant: 0
+  };
+  
+  members.forEach(member => {
+    if (roleCounts[member.role] !== undefined) {
+      roleCounts[member.role]++;
+    }
+  });
+  
+  // Additional validation could be added based on aircraft model
+  // and crew member experience
+  
+  return (
+    roleCounts.captain >= 1 &&
+    roleCounts.pilot >= 1 &&
+    roleCounts.flight_attendant >= 2
+  );
 };
