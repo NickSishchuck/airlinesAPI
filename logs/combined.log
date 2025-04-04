@@ -1,27 +1,44 @@
-2025-03-19 14:20:17 info: Server running in development mode on port 3000
-2025-03-19 14:20:17 info: MySQL Database connected to localhost:airline_transportation
-2025-03-19 14:20:17 info: MySQL Database connected to localhost:airline_transportation
-2025-03-19 14:20:30 error: Invalid credentials
-2025-03-19 14:31:27 error: Table 'airline_transportation.passengers' doesn't exist
-2025-03-19 14:31:45 error: Table 'airline_transportation.passengers' doesn't exist
-2025-03-19 15:12:26 info: Server running in development mode on port 3000
-2025-03-19 15:12:26 info: MySQL Database connected to localhost:airline_transportation
-2025-03-19 15:12:26 info: MySQL Database connected to localhost:airline_transportation
-2025-03-19 15:12:49 error: Unknown column 'u.first_name' in 'SELECT'
-2025-03-19 15:19:36 info: Server running in development mode on port 3000
-2025-03-19 15:19:36 info: MySQL Database connected to localhost:airline_transportation
-2025-03-19 15:19:36 info: MySQL Database connected to localhost:airline_transportation
-2025-03-22 16:11:38 info: Server running in development mode on port 3000
-2025-03-22 16:11:38 info: MySQL Database connected to localhost:airline_transportation
-2025-03-22 16:11:38 info: MySQL Database connected to localhost:airline_transportation
-2025-03-23 12:34:51 info: Server running in development mode on port 3000
-2025-03-23 12:34:51 info: MySQL Database connected to localhost:airline_transportation
-2025-03-23 12:34:51 info: MySQL Database connected to localhost:airline_transportation
-2025-03-23 13:18:04 info: Server running in development mode on port 3000
-2025-03-23 13:18:04 info: MySQL Database connected to localhost:airline_transportation
-2025-03-23 13:18:04 info: MySQL Database connected to localhost:airline_transportation
-2025-03-23 13:18:24 error: Invalid credentials
-2025-03-23 13:20:07 error: Invalid payment status
-2025-03-23 13:23:18 error: Invalid credentials
-2025-03-23 13:24:07 error: Invalid credentials
-2025-03-23 13:25:39 error: User role 'worker' is not authorized to access this route
+2025-03-31 05:34:19 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 05:34:19 error: Test setup failed:
+2025-03-31 05:34:19 error: Invalid credentials
+2025-03-31 05:34:19 error: Invalid credentials
+2025-03-31 05:34:19 error: Not authorized to access this route
+2025-03-31 05:34:19 error: Not authorized to access this route
+2025-03-31 05:34:19 error: Test teardown failed:
+2025-03-31 05:36:14 info: Server running in development mode on port 3000
+2025-03-31 05:36:14 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 05:36:14 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 05:50:07 info: Server running in development mode on port 3000
+2025-03-31 05:50:07 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 05:50:07 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 06:21:31 info: Server running in development mode on port 3000
+2025-03-31 06:21:31 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 06:21:31 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 12:02:14 info: Server running in development mode on port 3000
+2025-03-31 12:02:14 info: MySQL Database connected to localhost:airline_transportation
+2025-03-31 12:02:14 info: MySQL Database connected to localhost:airline_transportation
+2025-04-01 15:18:15 info: Server running in development mode on port 3000
+2025-04-01 15:18:15 info: MySQL Database connected to localhost:airline_transportation
+2025-04-01 15:18:15 info: MySQL Database connected to localhost:airline_transportation
+2025-04-01 17:46:18 info: Server running in development mode on port 3000
+2025-04-01 17:46:19 info: MySQL Database connected to localhost:airline_transportation
+2025-04-01 17:46:19 info: MySQL Database connected to localhost:airline_transportation
+2025-04-01 18:18:12 error: Not authorized to access these tickets
+2025-04-01 18:18:35 error: Not authorized to access these tickets
+2025-04-01 18:19:13 error: Not authorized to access these tickets
+2025-04-01 18:21:11 error: Not authorized to access these tickets
+2025-04-01 18:21:33 error: Not authorized to access these tickets
+2025-04-01 18:21:43 error: Not authorized to access these tickets
+2025-04-01 18:34:16 error: Not authorized to access these tickets
+2025-04-01 18:40:04 error: Not authorized to access these tickets
+2025-04-01 18:50:41 error: Not authorized to access these tickets
+2025-04-01 18:50:55 error: Not authorized to access these tickets
+2025-04-01 18:51:30 error: Not authorized to access these tickets
+2025-04-01 18:52:30 error: Unknown column 'f.price' in 'SELECT'
+2025-04-01 18:52:34 error: Unknown column 'f.price' in 'SELECT'
+2025-04-01 18:56:38 error: Not authorized to access these tickets
+2025-04-01 19:00:52 error: Not authorized to access this route
+2025-04-01 19:26:19 error: Not authorized to access these tickets
+2025-04-01 19:26:26 error: Not authorized to access these tickets
+2025-04-01 19:30:00 error: Not authorized to access these tickets
+2025-04-01 19:30:58 error: Not authorized to access these tickets
