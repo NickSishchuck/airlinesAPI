@@ -10,7 +10,8 @@ const {
   searchFlightsByRoute,
   generateFlightSchedule,
   cancelFlight,
-  getFlightPrices
+  getFlightPrices,
+  getFlightCrew
 } = require('../controllers/flightController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -32,6 +33,10 @@ router.route('/:id/cancel')
 // Flight prices route
 router.route('/:id/prices')
   .get(getFlightPrices);
+
+// Flight crew route
+router.route('/:id/crew')
+  .get(protect, getFlightCrew);
 
 // Main resource routes
 router.route('/')

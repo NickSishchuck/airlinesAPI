@@ -111,3 +111,7 @@
 2025-04-05 20:48:57 info: Server running in development mode on port 3000
 2025-04-05 20:48:57 info: MySQL Database connected to localhost:airline_transportation
 2025-04-05 20:48:57 info: MySQL Database connected to localhost:airline_transportation
+2025-04-05 21:40:25 error: Invalid credentials
+2025-04-05 22:03:54 info: Server running in development mode on port 3000
+2025-04-05 22:03:54 info: MySQL Database connected to localhost:airline_transportation
+2025-04-05 22:03:54 info: MySQL Database connected to localhost:airline_transportation

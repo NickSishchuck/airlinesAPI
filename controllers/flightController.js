@@ -273,3 +273,48 @@ exports.getFlightPrices = asyncHandler(async (req, res, next) => {
     }
   });
 });
+
+
+// @desc    Get flight crew details
+// @route   GET /api/flights/:id/crew
+// @access  Private
+exports.getFlightCrew = asyncHandler(async (req, res, next) => {
+  // Get flight details
+  const flight = await Flight.getFlightById(req.params.id);
+  
+  if (!flight) {
+    return next(new ErrorResponse(`Flight not found with id of ${req.params.id}`, 404));
+  }
+  
+  // Get aircraft details to find the crew
+  const aircraft = await Aircraft.getAircraftById(flight.aircraft_id);
+  
+  if (!aircraft || !aircraft.crew_id) {
+    return next(new ErrorResponse('No crew is assigned to this flight\'s aircraft', 404));
+  }
+  
+  // Get crew details
+  const crew = await Crew.getCrewById(aircraft.crew_id);
+  
+  if (!crew) {
+    return next(new ErrorResponse(`Crew not found with id of ${aircraft.crew_id}`, 404));
+  }
+  
+  // Get crew members
+  const crewMembers = await Crew.getCrewMembers(crew.crew_id);
+  
+  // Organize crew members by role
+  const organizedCrew = {
+    crew_id: crew.crew_id,
+    crew_name: crew.name,
+    crew_status: crew.status,
+    captains: crewMembers.filter(member => member.role === 'captain'),
+    pilots: crewMembers.filter(member => member.role === 'pilot'),
+    flight_attendants: crewMembers.filter(member => member.role === 'flight_attendant'),
+  };
+  
+  res.status(200).json({
+    success: true,
+    data: organizedCrew
+  });
+});
