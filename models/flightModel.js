@@ -210,6 +210,43 @@ exports.searchFlightsByRouteAndDate = async (origin, destination, date) => {
 };
 
 /**
+ * Search flights by route
+ * @param {string} origin - Origin city/airport
+ * @param {string} destination - Destination city/airport
+ * @returns {Promise<Array>} Matching flights
+ */
+exports.searchFlightsByRoute = async (origin, destination) => {
+  const [rows] = await pool.query(`
+    SELECT 
+      f.flight_id,
+      f.flight_number,
+      r.origin,
+      r.destination,
+      f.departure_time,
+      f.arrival_time,
+      f.status,
+      a.model AS aircraft_model,
+      (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS booked_seats,
+      a.capacity AS total_seats
+    FROM 
+      flights f
+    JOIN 
+      routes r ON f.route_id = r.route_id
+    JOIN 
+      aircraft a ON f.aircraft_id = a.aircraft_id
+    WHERE 
+      r.origin = ? AND 
+      r.destination = ?
+    ORDER BY 
+      f.departure_time
+  `, [origin, destination]);
+  
+  return rows;
+};
+
+
+
+/**
  * Generate flight schedule
  * @param {string} startDate - Start date (YYYY-MM-DD)
  * @param {string} endDate - End date (YYYY-MM-DD)

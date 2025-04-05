@@ -13,10 +13,14 @@ const {
 } = require('../controllers/flightController');
 
 const { protect, authorize } = require('../middleware/auth');
+const { searchFlightsByRoute } = require('../models/flightModel');
 
 // Route for search and schedule endpoints
 router.route('/search/by-route-date')
   .get(searchFlightsByRouteAndDate);
+
+router.route('/search/by-route')
+  .get(searchFlightsByRoute);
 
 router.route('/schedule/generate')
   .get(generateFlightSchedule);

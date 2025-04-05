@@ -182,6 +182,25 @@ exports.searchFlightsByRouteAndDate = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Search flights by route
+// @route   GET /api/flights/search/by-route
+// @access  Public
+exports.searchFlightsByRoute = asyncHandler(async (req, res, next) => {
+  const { origin, destination } = req.query;
+  
+  if (!origin || !destination) {
+    return next(new ErrorResponse('Please provide origin and destination', 400));
+  }
+  
+  const flights = await Flight.searchFlightsByRoute(origin, destination);
+  
+  res.status(200).json({
+    success: true,
+    count: flights.length,
+    data: flights
+  });
+});
+
 // @desc    Generate flight schedule
 // @route   GET /api/flights/schedule/generate
 // @access  Public

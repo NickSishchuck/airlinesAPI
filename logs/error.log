@@ -33,3 +33,5 @@
 2025-04-05 15:52:32 error: Invalid credentials
 2025-04-05 15:57:25 error: Unknown column 'a.created_at' in 'SELECT'
 2025-04-05 16:02:08 error: Aircraft not found with id of undefined
+2025-04-05 18:55:05 error: Aircraft not found with id of undefined
+2025-04-05 18:59:15 error: Aircraft not found with id of undefined
