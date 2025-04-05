@@ -19,9 +19,7 @@ exports.getAllAircraft = async (page = 1, limit = 10) => {
       a.crew_id,
       a.status,
       c.name AS crew_name,
-      (SELECT COUNT(*) FROM crew_assignments ca WHERE ca.crew_id = c.crew_id) AS crew_size,
-      a.created_at,
-      a.updated_at
+      (SELECT COUNT(*) FROM crew_assignments ca WHERE ca.crew_id = c.crew_id) AS crew_size
     FROM aircraft a
     LEFT JOIN crews c ON a.crew_id = c.crew_id
     ORDER BY a.registration_number
@@ -56,8 +54,7 @@ exports.getAircraftById = async (id) => {
       a.crew_id,
       a.status,
       c.name AS crew_name,
-      c.status AS crew_status,
-      a.created_at
+      c.status AS crew_status
     FROM aircraft a
     LEFT JOIN crews c ON a.crew_id = c.crew_id
     WHERE a.aircraft_id = ?

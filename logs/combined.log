@@ -57,3 +57,19 @@
 2025-04-04 19:10:21 info: Server running in development mode on port 3000
 2025-04-04 19:10:21 info: MySQL Database connected to localhost:airline_transportation
 2025-04-04 19:10:21 info: MySQL Database connected to localhost:airline_transportation
+2025-04-04 20:17:36 info: Server running in development mode on port 3000
+2025-04-04 20:17:36 info: MySQL Database connected to localhost:airline_transportation
+2025-04-04 20:17:36 info: MySQL Database connected to localhost:airline_transportation
+2025-04-05 14:12:18 info: Server running in development mode on port 3000
+2025-04-05 14:12:19 info: MySQL Database connected to localhost:airline_transportation
+2025-04-05 14:12:19 info: MySQL Database connected to localhost:airline_transportation
+2025-04-05 15:18:59 error: User role 'worker' is not authorized to access this route
+2025-04-05 15:50:13 error: Invalid credentials
+2025-04-05 15:50:30 error: Invalid credentials
+2025-04-05 15:50:50 error: Invalid credentials
+2025-04-05 15:52:32 error: Invalid credentials
+2025-04-05 15:57:25 error: Unknown column 'a.created_at' in 'SELECT'
+2025-04-05 16:01:24 info: Server running in development mode on port 3000
+2025-04-05 16:01:24 info: MySQL Database connected to localhost:airline_transportation
+2025-04-05 16:01:24 info: MySQL Database connected to localhost:airline_transportation
+2025-04-05 16:02:08 error: Aircraft not found with id of undefined
