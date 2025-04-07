@@ -91,6 +91,44 @@ exports.getTicketsByUser = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Get tickets by flight number
+// @route   GET /api/tickets/flight-number/:flightNumber
+// @access  Private/Admin/Staff
+exports.getTicketsByFlightNumber = asyncHandler(async (req, res, next) => {
+  const { flightNumber } = req.params;
+  
+  if (!flightNumber) {
+    return next(new ErrorResponse('Please provide a flight number', 400));
+  }
+  
+  const tickets = await Ticket.getTicketsByFlightNumber(flightNumber);
+  
+  res.status(200).json({
+    success: true,
+    count: tickets.length,
+    data: tickets
+  });
+});
+
+// @desc    Get tickets by passport number
+// @route   GET /api/tickets/passport/:passportNumber
+// @access  Private/Admin/Staff
+exports.getTicketsByPassportNumber = asyncHandler(async (req, res, next) => {
+  const { passportNumber } = req.params;
+  
+  if (!passportNumber) {
+    return next(new ErrorResponse('Please provide a passport number', 400));
+  }
+  
+  const tickets = await Ticket.getTicketsByPassportNumber(passportNumber);
+  
+  res.status(200).json({
+    success: true,
+    count: tickets.length,
+    data: tickets
+  });
+});
+
 // @desc    Get tickets by flight
 // @route   GET /api/tickets/flight/:flightId
 // @access  Private/Admin

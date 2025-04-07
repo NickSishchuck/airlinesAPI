@@ -185,6 +185,72 @@ exports.getTicketsByFlight = async (flightId) => {
 };
 
 /**
+ * Get tickets by flight number
+ * @param {string} flightNumber - Flight number
+ * @returns {Promise<Array>} Matching tickets
+ */
+exports.getTicketsByFlightNumber = async (flightNumber) => {
+  const [rows] = await pool.query(`
+    SELECT 
+      t.ticket_id,
+      t.seat_number,
+      t.class,
+      t.price,
+      t.booking_date,
+      t.payment_status,
+      f.flight_number,
+      f.departure_time,
+      f.arrival_time,
+      r.origin,
+      r.destination,
+      f.status AS flight_status,
+      CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
+      u.passport_number
+    FROM tickets t
+    JOIN flights f ON t.flight_id = f.flight_id
+    JOIN routes r ON f.route_id = r.route_id
+    JOIN users u ON t.user_id = u.user_id
+    WHERE f.flight_number = ?
+    ORDER BY t.seat_number
+  `, [flightNumber]);
+  
+  return rows;
+};
+
+/**
+ * Get tickets by passenger passport number
+ * @param {string} passportNumber - Passport number
+ * @returns {Promise<Array>} Matching tickets
+ */
+exports.getTicketsByPassportNumber = async (passportNumber) => {
+  const [rows] = await pool.query(`
+    SELECT 
+      t.ticket_id,
+      t.seat_number,
+      t.class,
+      t.price,
+      t.booking_date,
+      t.payment_status,
+      f.flight_number,
+      f.departure_time,
+      f.arrival_time,
+      r.origin,
+      r.destination,
+      f.status AS flight_status,
+      CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
+      u.passport_number
+    FROM tickets t
+    JOIN flights f ON t.flight_id = f.flight_id
+    JOIN routes r ON f.route_id = r.route_id
+    JOIN users u ON t.user_id = u.user_id
+    WHERE u.passport_number = ?
+    ORDER BY f.departure_time
+  `, [passportNumber]);
+  
+  return rows;
+};
+
+/**
  * Generate ticket sales report
  * @param {string} startDate - Start date (YYYY-MM-DD)
  * @param {string} endDate - End date (YYYY-MM-DD)

@@ -11,7 +11,9 @@ const {
   getTicketsByFlight,
   generateTicketSalesReport,
   updatePaymentStatus,
-  getAvailableSeats
+  getAvailableSeats,
+  getTicketsByFlightNumber,
+  getTicketsByPassportNumber
 } = require('../controllers/ticketController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -29,7 +31,14 @@ router.route('/flight/:flightId')
 
 router.route('/flight/:flightId/available-seats')
   .get(getAvailableSeats);
+  
+// Tickets by flight number route
+router.route('/flight-number/:flightNumber')
+  .get(protect, authorize('admin', 'worker'), getTicketsByFlightNumber);
 
+// Tickets by passport number route
+router.route('/passport/:passportNumber')
+  .get(protect, authorize('admin', 'worker'), getTicketsByPassportNumber);
 // Ticket printing route
 router.route('/:id/print')
   .get(protect, printTicket);
