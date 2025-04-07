@@ -16,6 +16,8 @@ exports.getAllTickets = async (page = 1, limit = 10) => {
       t.seat_number,
       t.class,
       t.price,
+      t.user_id,
+      t.flight_id,
       t.booking_date,
       t.payment_status,
       f.flight_number,

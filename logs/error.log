@@ -36,3 +36,14 @@
 2025-04-05 18:55:05 error: Aircraft not found with id of undefined
 2025-04-05 18:59:15 error: Aircraft not found with id of undefined
 2025-04-05 21:40:25 error: Invalid credentials
+2025-04-07 16:16:04 error: Invalid credentials
+2025-04-07 16:16:41 error: Crew is not defined
+2025-04-07 16:17:00 error: Crew is not defined
+2025-04-07 16:17:09 error: Crew is not defined
+2025-04-07 16:25:27 error: Invalid payment status
+2025-04-07 16:47:57 error: Unknown column 'name' in 'SELECT'
+2025-04-07 16:47:57 error: Flight not found with id of lookup
+2025-04-07 16:49:17 error: Flight not found with id of lookup
+2025-04-07 16:51:41 error: Not authorized to access this route
+2025-04-07 17:35:47 error: Unknown column 't_flight_id' in 'SELECT'
+2025-04-07 17:36:06 error: Unknown column 't_flight_id' in 'SELECT'

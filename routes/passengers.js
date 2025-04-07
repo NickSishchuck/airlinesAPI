@@ -1,5 +1,8 @@
 const express = require('express');
+
+//TODO rename the thing to users
 const router = express.Router();
+
 const {
   getPassengers,
   getPassenger,
