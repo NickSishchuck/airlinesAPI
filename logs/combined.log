@@ -141,3 +141,39 @@
 2025-04-07 18:19:09 info: Server running in development mode on port 3000
 2025-04-07 18:19:09 info: MySQL Database connected to localhost:airline_transportation
 2025-04-07 18:19:09 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 17:02:22 info: Server running in development mode on port 3000
+2025-04-08 17:02:22 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 17:02:22 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 17:03:36 error: Flight is already canceled
+2025-04-08 17:12:16 error: Not authorized to access this route
+2025-04-08 18:05:30 info: Server running in development mode on port 3000
+2025-04-08 18:05:30 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:05:30 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:07:46 info: Server running in development mode on port 3000
+2025-04-08 18:07:46 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:07:46 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:09:28 error: Not authorized to access this route
+2025-04-08 18:10:08 info: Server running in development mode on port 3000
+2025-04-08 18:10:08 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:10:08 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:11:36 info: Server running in development mode on port 3000
+2025-04-08 18:11:36 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:11:36 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:15:25 info: Server running in development mode on port 3000
+2025-04-08 18:15:25 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:15:25 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:15:36 error: Not authorized to access this route
+2025-04-08 18:20:17 info: Server running in development mode on port 3000
+2025-04-08 18:20:17 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:20:17 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 18:20:49 error: Not authorized to access this route
+2025-04-08 18:23:00 error: Not authorized to access this route
+2025-04-08 18:24:08 error: Please provide email and password
+2025-04-08 18:24:31 error: Please provide email and password
+2025-04-08 18:24:44 error: Please provide email and password
+2025-04-08 18:26:06 error: Please provide email and password
+2025-04-08 18:27:11 error: Please provide email and password
+2025-04-08 18:27:27 error: Please provide email and password
+2025-04-08 18:27:29 error: Please provide email and password
+2025-04-08 18:27:45 error: Please provide email and password
+2025-04-08 18:27:48 error: Please provide email and password

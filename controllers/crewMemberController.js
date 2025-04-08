@@ -25,6 +25,25 @@ exports.getCrewMembers = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Search crew members by last name
+// @route   GET /api/crew-members/search/:lastName
+// @access  Private/Admin/Staff
+exports.searchCrewMembersByLastName = asyncHandler(async (req, res, next) => {
+  const { lastName } = req.params;
+  
+  if (!lastName) {
+    return next(new ErrorResponse('Please provide a last name to search for', 400));
+  }
+  
+  const crewMembers = await CrewMember.searchByLastName(lastName);
+  
+  res.status(200).json({
+    success: true,
+    count: crewMembers.length,
+    data: crewMembers
+  });
+});
+
 // @desc    Get single crew member
 // @route   GET /api/crew-members/:id
 // @access  Private/Admin/Staff

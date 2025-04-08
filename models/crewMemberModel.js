@@ -86,6 +86,33 @@ exports.getCrewMemberById = async (id) => {
 };
 
 /**
+ * Search crew members by last name
+ * @param {string} lastName - Last name to search for
+ * @returns {Promise<Array>} Matching crew members
+ */
+exports.searchByLastName = async (lastName) => {
+  const [rows] = await pool.query(`
+    SELECT 
+      cm.crew_member_id,
+      cm.first_name,
+      cm.last_name,
+      cm.role,
+      cm.license_number,
+      cm.experience_years,
+      cm.contact_number,
+      cm.email,
+      (SELECT COUNT(*) FROM crew_assignments ca WHERE ca.crew_member_id = cm.crew_member_id) AS crew_count
+    FROM crew_members cm
+    WHERE 
+      cm.last_name LIKE ?
+    ORDER BY cm.last_name, cm.first_name
+    LIMIT 20
+  `, [`%${lastName}%`]);
+  
+  return rows;
+};
+
+/**
  * Check if license number already exists
  * @param {string} licenseNumber - License to check
  * @param {number} excludeId - Crew member ID to exclude from check

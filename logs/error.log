@@ -47,3 +47,18 @@
 2025-04-07 16:51:41 error: Not authorized to access this route
 2025-04-07 17:35:47 error: Unknown column 't_flight_id' in 'SELECT'
 2025-04-07 17:36:06 error: Unknown column 't_flight_id' in 'SELECT'
+2025-04-08 17:03:36 error: Flight is already canceled
+2025-04-08 17:12:16 error: Not authorized to access this route
+2025-04-08 18:09:28 error: Not authorized to access this route
+2025-04-08 18:15:36 error: Not authorized to access this route
+2025-04-08 18:20:49 error: Not authorized to access this route
+2025-04-08 18:23:00 error: Not authorized to access this route
+2025-04-08 18:24:08 error: Please provide email and password
+2025-04-08 18:24:31 error: Please provide email and password
+2025-04-08 18:24:44 error: Please provide email and password
+2025-04-08 18:26:06 error: Please provide email and password
+2025-04-08 18:27:11 error: Please provide email and password
+2025-04-08 18:27:27 error: Please provide email and password
+2025-04-08 18:27:29 error: Please provide email and password
+2025-04-08 18:27:45 error: Please provide email and password
+2025-04-08 18:27:48 error: Please provide email and password

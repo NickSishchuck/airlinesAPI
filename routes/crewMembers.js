@@ -7,7 +7,8 @@ const {
   updateCrewMember,
   deleteCrewMember,
   getCrewMemberAssignments,
-  getCrewMemberFlights
+  getCrewMemberFlights,
+  searchCrewMembersByLastName
 } = require('../controllers/crewMemberController');
 
 const { protect, authorize } = require('../middleware/auth');
