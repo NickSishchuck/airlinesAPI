@@ -4,7 +4,9 @@ const cors = require('cors');
 const morgan = require('morgan');
 const { connectDB } = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
-const docsRouter = require('./routes/docs');
+//const docsRouter = require('./routes/docs');
+//FIXME
+
 
 // Initialize express app
 const app = express();
@@ -38,7 +40,8 @@ app.use('/api', docsRouter);
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to Airline Transportation API',
-    documentation: '/api/docs'
+    //documentation: '/api/docs'
+    //FIXME
   });
 });
 

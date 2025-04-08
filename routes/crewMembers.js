@@ -30,4 +30,7 @@ router.route('/:id')
   .put(protect, authorize('admin'), updateCrewMember)
   .delete(protect, authorize('admin'), deleteCrewMember);
 
+router.route('/search/:lastName')
+  .get(protect, authorize('admin', 'worker'), searchCrewMembersByLastName);
+
 module.exports = router;
