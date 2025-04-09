@@ -34,7 +34,7 @@ app.use('/api/flights', require('./routes/flights'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/auth', require('./routes/auth')); 
 app.use('/api/users', require('./routes/users'));
-app.use('/api', docsRouter);
+//app.use('/api', docsRouter);
 
 // Home route
 app.get('/', (req, res) => {

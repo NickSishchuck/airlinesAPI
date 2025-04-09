@@ -192,3 +192,10 @@
 2025-04-08 18:57:19 info: Server running in development mode on port 3000
 2025-04-08 18:57:19 info: MySQL Database connected to localhost:airline_transportation
 2025-04-08 18:57:19 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 19:30:42 info: Server running in development mode on port 3000
+2025-04-08 19:30:42 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 19:30:42 info: MySQL Database connected to localhost:airline_transportation
+2025-04-08 19:36:05 error: Flight is already canceled
+2025-04-09 13:25:35 info: Server running in development mode on port 3000
+2025-04-09 13:25:35 info: MySQL Database connected to localhost:airline_transportation
+2025-04-09 13:25:35 info: MySQL Database connected to localhost:airline_transportation
