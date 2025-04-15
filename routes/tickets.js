@@ -13,10 +13,23 @@ const {
   updatePaymentStatus,
   getAvailableSeats,
   getTicketsByFlightNumber,
-  getTicketsByPassportNumber
+  getTicketsByPassportNumber,
+  validateSeat,
+  holdSeat,
+  releaseSeat
 } = require('../controllers/ticketController');
 
 const { protect, authorize } = require('../middleware/auth');
+
+// Seat validation and management routes
+router.route('/validate-seat')
+  .post(protect, validateSeat);
+
+router.route('/hold-seat')
+  .post(protect, holdSeat);
+
+router.route('/release-seat')
+  .post(protect, releaseSeat);
 
 // Reports route
 router.route('/reports/sales')
@@ -31,6 +44,9 @@ router.route('/flight/:flightId')
 
 router.route('/flight/:flightId/available-seats')
   .get(getAvailableSeats);
+
+router.route('/flight/:flightId/available-seats/:class')
+  .get(getAvailableSeats);
   
 // Tickets by flight number route
 router.route('/flight-number/:flightNumber')
@@ -39,6 +55,7 @@ router.route('/flight-number/:flightNumber')
 // Tickets by passport number route
 router.route('/passport/:passportNumber')
   .get(protect, authorize('admin', 'worker'), getTicketsByPassportNumber);
+
 // Ticket printing route
 router.route('/:id/print')
   .get(protect, printTicket);

@@ -1,5 +1,7 @@
 const { pool } = require('../config/database');
 const Flight = require('./flightModel');
+const FlightSeats = require('./flightSeatsModel');
+const logger = require('../utils/logger');
 
 /**
  * Get all tickets with pagination
@@ -26,7 +28,8 @@ exports.getAllTickets = async (page = 1, limit = 10) => {
       r.origin,
       r.destination,
       CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
-      u.passport_number
+      u.passport_number,
+      u.gender
     FROM tickets t
     JOIN flights f ON t.flight_id = f.flight_id
     JOIN routes r ON f.route_id = r.route_id
@@ -68,20 +71,18 @@ exports.getTicketById = async (id) => {
       f.arrival_time,
       f.status AS flight_status,
       f.gate,
-      f.base_price,
       r.origin,
       r.destination,
       CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
       u.passport_number,
+      u.gender,
       a.model AS aircraft_model,
-      a.registration_number,
-      c.name AS crew_name
+      a.registration_number
     FROM tickets t
     JOIN flights f ON t.flight_id = f.flight_id
     JOIN routes r ON f.route_id = r.route_id
     JOIN users u ON t.user_id = u.user_id
     JOIN aircraft a ON f.aircraft_id = a.aircraft_id
-    LEFT JOIN crews c ON a.crew_id = c.crew_id
     WHERE t.ticket_id = ?
   `, [id]);
   
@@ -108,9 +109,9 @@ exports.generateTicket = async (id) => {
       a.model AS aircraft_model,
       CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
       u.passport_number,
+      u.gender,
       a.registration_number AS aircraft_registration,
-      f.gate,
-      c.name AS crew_name
+      f.gate
     FROM 
       tickets t
     JOIN 
@@ -121,8 +122,6 @@ exports.generateTicket = async (id) => {
       aircraft a ON f.aircraft_id = a.aircraft_id
     JOIN 
       users u ON t.user_id = u.user_id
-    LEFT JOIN
-      crews c ON a.crew_id = c.crew_id
     WHERE 
       t.ticket_id = ?
   `, [id]);
@@ -174,6 +173,7 @@ exports.getTicketsByFlight = async (flightId) => {
       t.price,
       CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
       u.passport_number,
+      u.gender,
       t.payment_status
     FROM tickets t
     JOIN users u ON t.user_id = u.user_id
@@ -205,7 +205,8 @@ exports.getTicketsByFlightNumber = async (flightNumber) => {
       r.destination,
       f.status AS flight_status,
       CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
-      u.passport_number
+      u.passport_number,
+      u.gender
     FROM tickets t
     JOIN flights f ON t.flight_id = f.flight_id
     JOIN routes r ON f.route_id = r.route_id
@@ -213,39 +214,6 @@ exports.getTicketsByFlightNumber = async (flightNumber) => {
     WHERE f.flight_number = ?
     ORDER BY t.seat_number
   `, [flightNumber]);
-  
-  return rows;
-};
-
-/**
- * Get tickets by passenger passport number
- * @param {string} passportNumber - Passport number
- * @returns {Promise<Array>} Matching tickets
- */
-exports.getTicketsByPassportNumber = async (passportNumber) => {
-  const [rows] = await pool.query(`
-    SELECT 
-      t.ticket_id,
-      t.seat_number,
-      t.class,
-      t.price,
-      t.booking_date,
-      t.payment_status,
-      f.flight_number,
-      f.departure_time,
-      f.arrival_time,
-      r.origin,
-      r.destination,
-      f.status AS flight_status,
-      CONCAT(u.first_name, ' ', u.last_name) AS passenger_name,
-      u.passport_number
-    FROM tickets t
-    JOIN flights f ON t.flight_id = f.flight_id
-    JOIN routes r ON f.route_id = r.route_id
-    JOIN users u ON t.user_id = u.user_id
-    WHERE u.passport_number = ?
-    ORDER BY f.departure_time
-  `, [passportNumber]);
   
   return rows;
 };
@@ -259,6 +227,7 @@ exports.getTicketsByPassportNumber = async (passportNumber) => {
 exports.generateTicketSalesReport = async (startDate, endDate) => {
   const [rows] = await pool.query(`
     SELECT 
+      f.flight_id,
       f.flight_number,
       r.origin,
       r.destination,
@@ -286,7 +255,35 @@ exports.generateTicketSalesReport = async (startDate, endDate) => {
       f.departure_time, t.class
   `, [startDate, endDate]);
   
-  return rows;
+  // For each flight, get the available seat counts by class
+  const enhancedReport = [];
+  
+  for (const row of rows) {
+    // Get seat availability for this flight
+    const seatMap = await FlightSeats.getFlightSeatMap(row.flight_id);
+    
+    const enhancedRow = {
+      ...row,
+      available_seats: 0,
+      seat_availability: {}
+    };
+    
+    // Add seat availability details
+    if (seatMap[row.ticket_class]) {
+      enhancedRow.available_seats = seatMap[row.ticket_class].available.length;
+      enhancedRow.seat_availability = {
+        available: seatMap[row.ticket_class].available.length,
+        booked: seatMap[row.ticket_class].booked.length,
+        total: seatMap[row.ticket_class].available.length + seatMap[row.ticket_class].booked.length,
+        occupancy_percentage: Math.round((seatMap[row.ticket_class].booked.length / 
+          (seatMap[row.ticket_class].available.length + seatMap[row.ticket_class].booked.length)) * 100)
+      };
+    }
+    
+    enhancedReport.push(enhancedRow);
+  }
+  
+  return enhancedReport;
 };
 
 /**
@@ -295,35 +292,93 @@ exports.generateTicketSalesReport = async (startDate, endDate) => {
  * @returns {Promise<number>} ID of the created ticket
  */
 exports.createTicket = async (ticketData) => {
-  let {
-    user_id,
-    flight_id,
-    seat_number,
-    class: ticketClass = 'economy',
-    price,
-    payment_status = 'pending'
-  } = ticketData;
+  const connection = await pool.getConnection();
   
-  // If price is not provided, calculate it based on flight base price and class
-  if (!price) {
-    price = await Flight.calculateTicketPrice(flight_id, ticketClass);
+  try {
+    await connection.beginTransaction();
+    
+    let {
+      user_id,
+      flight_id,
+      seat_number,
+      class: ticketClass = 'economy',
+      price,
+      payment_status = 'pending'
+    } = ticketData;
+    
+    // Check if the seat is available
+    const seatAvailable = await FlightSeats.isSeatAvailable(flight_id, ticketClass, seat_number);
+    if (!seatAvailable) {
+      throw new Error('Seat is not available');
+    }
+    
+    // If woman_only class, check if passenger is female
+    if (ticketClass === 'woman_only') {
+      // Get user's gender
+      const [userRows] = await connection.query(
+        'SELECT gender FROM users WHERE user_id = ?',
+        [user_id]
+      );
+      
+      if (userRows.length === 0) {
+        throw new Error('User not found');
+      }
+      
+      if (!FlightSeats.validateWomanOnlySeat(userRows[0].gender)) {
+        throw new Error('Woman-only seats can only be booked by female passengers');
+      }
+    }
+    
+    // If price is not provided, calculate it based on flight base price and class multiplier
+    if (!price) {
+      const [flightRows] = await connection.query(
+        `SELECT 
+          base_price, 
+          first_class_multiplier, 
+          business_class_multiplier, 
+          economy_class_multiplier, 
+          woman_only_multiplier 
+        FROM flights 
+        WHERE flight_id = ?`,
+        [flight_id]
+      );
+      
+      if (flightRows.length === 0) {
+        throw new Error('Flight not found');
+      }
+      
+      const flight = flightRows[0];
+      const multiplierField = `${ticketClass}_multiplier`;
+      price = flight.base_price * flight[multiplierField];
+    }
+    
+    // Book the seat in the flight_seats table
+    await FlightSeats.bookSeat(flight_id, ticketClass, seat_number);
+    
+    // Create the ticket
+    const [result] = await connection.query(`
+      INSERT INTO tickets (
+        user_id, flight_id, seat_number, 
+        class, price, payment_status
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+      user_id,
+      flight_id,
+      seat_number,
+      ticketClass,
+      price,
+      payment_status
+    ]);
+    
+    await connection.commit();
+    return result.insertId;
+  } catch (error) {
+    await connection.rollback();
+    logger.error(`Error creating ticket: ${error.message}`);
+    throw error;
+  } finally {
+    connection.release();
   }
-  
-  const [result] = await pool.query(`
-    INSERT INTO tickets (
-      user_id, flight_id, seat_number, 
-      class, price, payment_status
-    ) VALUES (?, ?, ?, ?, ?, ?)
-  `, [
-    user_id,
-    flight_id,
-    seat_number,
-    ticketClass,
-    price,
-    payment_status
-  ]);
-  
-  return result.insertId;
 };
 
 /**
@@ -333,44 +388,126 @@ exports.createTicket = async (ticketData) => {
  * @returns {Promise<boolean>} Whether update was successful
  */
 exports.updateTicket = async (id, ticketData) => {
-  const {
-    seat_number,
-    class: ticketClass,
-    price,
-    payment_status
-  } = ticketData;
+  const connection = await pool.getConnection();
   
-  // If updating the class and not providing a price, we need to recalculate
-  let updatedPrice = price;
-  if (ticketClass && !price) {
-    // Get the flight ID from the ticket
-    const [ticketRows] = await pool.query(
-      'SELECT flight_id FROM tickets WHERE ticket_id = ?',
+  try {
+    await connection.beginTransaction();
+    
+    // Get current ticket details
+    const [ticketRows] = await connection.query(
+      'SELECT flight_id, class, seat_number FROM tickets WHERE ticket_id = ?',
       [id]
     );
     
-    if (ticketRows.length > 0) {
-      updatedPrice = await Flight.calculateTicketPrice(ticketRows[0].flight_id, ticketClass);
+    if (ticketRows.length === 0) {
+      throw new Error('Ticket not found');
     }
+    
+    const currentTicket = ticketRows[0];
+    const {
+      seat_number,
+      class: ticketClass,
+      price,
+      payment_status
+    } = ticketData;
+    
+    let finalSeatNumber = seat_number || currentTicket.seat_number;
+    let finalTicketClass = ticketClass || currentTicket.class;
+    let finalPrice = price;
+    
+    // If changing seat or class, we need to handle seat availability
+    if ((seat_number && seat_number !== currentTicket.seat_number) || 
+        (ticketClass && ticketClass !== currentTicket.class)) {
+      
+      // If changing class, need to validate woman_only restrictions
+      if (ticketClass === 'woman_only' && ticketClass !== currentTicket.class) {
+        // Get user's gender
+        const [userRows] = await connection.query(
+          'SELECT u.gender FROM tickets t JOIN users u ON t.user_id = u.user_id WHERE t.ticket_id = ?',
+          [id]
+        );
+        
+        if (!FlightSeats.validateWomanOnlySeat(userRows[0].gender)) {
+          throw new Error('Woman-only seats can only be booked by female passengers');
+        }
+      }
+      
+      // Check if the new seat is available
+      if (finalSeatNumber !== currentTicket.seat_number || finalTicketClass !== currentTicket.class) {
+        const seatAvailable = await FlightSeats.isSeatAvailable(
+          currentTicket.flight_id, 
+          finalTicketClass, 
+          finalSeatNumber
+        );
+        
+        if (!seatAvailable) {
+          throw new Error('The requested seat is not available');
+        }
+        
+        // Release the old seat
+        await FlightSeats.releaseSeat(
+          currentTicket.flight_id,
+          currentTicket.class,
+          currentTicket.seat_number
+        );
+        
+        // Book the new seat
+        await FlightSeats.bookSeat(
+          currentTicket.flight_id,
+          finalTicketClass,
+          finalSeatNumber
+        );
+      }
+    }
+    
+    // If updating the class and not providing a price, recalculate
+    if (ticketClass && ticketClass !== currentTicket.class && !price) {
+      // Get flight details for pricing
+      const [flightRows] = await connection.query(
+        `SELECT 
+          base_price, 
+          first_class_multiplier, 
+          business_class_multiplier, 
+          economy_class_multiplier, 
+          woman_only_multiplier 
+        FROM flights 
+        WHERE flight_id = ?`,
+        [currentTicket.flight_id]
+      );
+      
+      if (flightRows.length > 0) {
+        const flight = flightRows[0];
+        const multiplierField = `${finalTicketClass}_multiplier`;
+        finalPrice = flight.base_price * flight[multiplierField];
+      }
+    }
+    
+    // Update the ticket record
+    const [result] = await connection.query(`
+      UPDATE tickets
+      SET
+        seat_number = COALESCE(?, seat_number),
+        class = COALESCE(?, class),
+        price = COALESCE(?, price),
+        payment_status = COALESCE(?, payment_status)
+      WHERE ticket_id = ?
+    `, [
+      finalSeatNumber,
+      finalTicketClass,
+      finalPrice,
+      payment_status,
+      id
+    ]);
+    
+    await connection.commit();
+    return result.affectedRows > 0;
+  } catch (error) {
+    await connection.rollback();
+    logger.error(`Error updating ticket: ${error.message}`);
+    throw error;
+  } finally {
+    connection.release();
   }
-  
-  const [result] = await pool.query(`
-    UPDATE tickets
-    SET
-      seat_number = COALESCE(?, seat_number),
-      class = COALESCE(?, class),
-      price = COALESCE(?, price),
-      payment_status = COALESCE(?, payment_status)
-    WHERE ticket_id = ?
-  `, [
-    seat_number,
-    ticketClass,
-    updatedPrice,
-    payment_status,
-    id
-  ]);
-  
-  return result.affectedRows > 0;
 };
 
 /**
@@ -379,28 +516,56 @@ exports.updateTicket = async (id, ticketData) => {
  * @returns {Promise<boolean>} Whether deletion was successful
  */
 exports.deleteTicket = async (id) => {
-  const [result] = await pool.query('DELETE FROM tickets WHERE ticket_id = ?', [id]);
-  return result.affectedRows > 0;
+  const connection = await pool.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    
+    // Get ticket details
+    const [ticketRows] = await connection.query(
+      'SELECT flight_id, class, seat_number FROM tickets WHERE ticket_id = ?',
+      [id]
+    );
+    
+    if (ticketRows.length === 0) {
+      throw new Error('Ticket not found');
+    }
+    
+    const ticket = ticketRows[0];
+    
+    // Release the seat
+    await FlightSeats.releaseSeat(
+      ticket.flight_id,
+      ticket.class,
+      ticket.seat_number
+    );
+    
+    // Delete the ticket
+    const [result] = await connection.query(
+      'DELETE FROM tickets WHERE ticket_id = ?', 
+      [id]
+    );
+    
+    await connection.commit();
+    return result.affectedRows > 0;
+  } catch (error) {
+    await connection.rollback();
+    logger.error(`Error deleting ticket: ${error.message}`);
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
 /**
- * Check if seat is available on flight
+ * Check if seat is available on flight (backward compatibility function)
  * @param {number} flightId - Flight ID
  * @param {string} seatNumber - Seat number
- * @param {number} excludeTicketId - Ticket ID to exclude from check
+ * @param {string} seatClass - Seat class
  * @returns {Promise<boolean>} Whether seat is available
  */
-exports.isSeatAvailable = async (flightId, seatNumber, excludeTicketId = null) => {
-  let query = 'SELECT COUNT(*) AS count FROM tickets WHERE flight_id = ? AND seat_number = ?';
-  const params = [flightId, seatNumber];
-  
-  if (excludeTicketId) {
-    query += ' AND ticket_id != ?';
-    params.push(excludeTicketId);
-  }
-  
-  const [rows] = await pool.query(query, params);
-  return rows[0].count === 0;
+exports.isSeatAvailable = async (flightId, seatNumber, seatClass = 'economy') => {
+  return await FlightSeats.isSeatAvailable(flightId, seatClass, seatNumber);
 };
 
 /**
@@ -419,99 +584,79 @@ exports.updatePaymentStatus = async (id, status) => {
 };
 
 /**
- * Get available seats for a flight
+ * Validate a seat for booking (checks if available and appropriate for the user)
  * @param {number} flightId - Flight ID
- * @returns {Promise<Array>} Available seats
+ * @param {string} seatNumber - Seat number
+ * @param {string} seatClass - Seat class
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Validation result with seat status and any validation messages
  */
-exports.getAvailableSeats = async (flightId) => {
-  // First get the aircraft capacity for this flight
-  const [flightRows] = await pool.query(`
-    SELECT 
-      a.capacity,
-      a.model
-    FROM flights f
-    JOIN aircraft a ON f.aircraft_id = a.aircraft_id
-    WHERE f.flight_id = ?
-  `, [flightId]);
-  
-  if (flightRows.length === 0) {
-    throw new Error('Flight not found');
+exports.validateSeatForBooking = async (flightId, seatNumber, seatClass, userId) => {
+  try {
+    // Check if the seat exists and is available
+    const seatAvailable = await FlightSeats.isSeatAvailable(flightId, seatClass, seatNumber);
+    
+    if (!seatAvailable) {
+      return {
+        valid: false,
+        message: 'This seat is not available'
+      };
+    }
+    
+    // If woman_only class, check gender
+    if (seatClass === 'woman_only') {
+      const [userRows] = await pool.query(
+        'SELECT gender FROM users WHERE user_id = ?',
+        [userId]
+      );
+      
+      if (userRows.length === 0) {
+        return {
+          valid: false,
+          message: 'User not found'
+        };
+      }
+      
+      if (!FlightSeats.validateWomanOnlySeat(userRows[0].gender)) {
+        return {
+          valid: false,
+          message: 'Woman-only seats can only be booked by female passengers'
+        };
+      }
+    }
+    
+    // If we made it here, seat is valid
+    return {
+      valid: true,
+      message: 'Seat is available for booking'
+    };
+  } catch (error) {
+    logger.error(`Error validating seat: ${error.message}`);
+    return {
+      valid: false,
+      message: `Error validating seat: ${error.message}`
+    };
   }
-  
-  const capacity = flightRows[0].capacity;
-  const model = flightRows[0].model;
-  
-  // Get currently booked seats
-  const [bookedRows] = await pool.query(`
-    SELECT seat_number
-    FROM tickets
-    WHERE flight_id = ?
-  `, [flightId]);
-  
-  const bookedSeats = bookedRows.map(row => row.seat_number);
-  
-  // Generate all possible seats based on aircraft model and capacity
-  const allSeats = generateSeatMap(model, capacity);
-  
-  // Filter out booked seats
-  return allSeats.filter(seat => !bookedSeats.includes(seat));
 };
 
 /**
- * Helper function to generate seat map based on aircraft model and capacity
- * @param {string} model - Aircraft model
- * @param {number} capacity - Aircraft capacity
- * @returns {Array} Array of seat numbers
+ * Get available seats for a flight by class
+ * @param {number} flightId - Flight ID
+ * @param {string} seatClass - Optional class filter
+ * @returns {Promise<Object>} Available seats by class
  */
-function generateSeatMap(model, capacity) {
-  const seats = [];
-  
-  // Different aircraft models have different seating layouts
-  // This is a simplified example
-  
-  // Rows typically go from 1 to N
-  const rows = Math.ceil(capacity / 6); // Assuming 6 seats per row
-  
-  // Seat letters are typically A-F for narrow-body aircraft
-  const seatLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
-  
-  // Some aircraft models might have different layouts
-  if (model.includes('A320') || model.includes('737')) {
-    // Standard 3-3 configuration
-    for (let row = 1; row <= rows; row++) {
-      for (const letter of seatLetters) {
-        seats.push(`${row}${letter}`);
-        
-        // Stop if we've reached capacity
-        if (seats.length >= capacity) {
-          return seats;
-        }
-      }
+exports.getAvailableSeatsByClass = async (flightId, seatClass = null) => {
+  try {
+    if (seatClass) {
+      // Return seats for specific class
+      const seats = await FlightSeats.getAvailableSeatsByClass(flightId, seatClass);
+      return { [seatClass]: seats };
+    } else {
+      // Return all available seats by class
+      return await FlightSeats.getAllAvailableSeats(flightId);
     }
-  } else if (model.includes('E190')) {
-    // 2-2 configuration
-    const e190Letters = ['A', 'B', 'C', 'D']; // 2-2 configuration
-    for (let row = 1; row <= rows; row++) {
-      for (const letter of e190Letters) {
-        seats.push(`${row}${letter}`);
-        
-        if (seats.length >= capacity) {
-          return seats;
-        }
-      }
-    }
-  } else {
-    // Generic configuration
-    for (let row = 1; row <= rows; row++) {
-      for (const letter of seatLetters) {
-        seats.push(`${row}${letter}`);
-        
-        if (seats.length >= capacity) {
-          return seats;
-        }
-      }
-    }
+  } catch (error) {
+    logger.error(`Error getting available seats: ${error.message}`);
+    throw error;
   }
-  
-  return seats;
-}
+};
