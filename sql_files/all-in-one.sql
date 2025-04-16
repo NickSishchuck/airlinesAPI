@@ -9,8 +9,6 @@ CREATE TABLE IF NOT EXISTS routes (
     destination VARCHAR(100) NOT NULL,
     distance FLOAT NOT NULL,
     estimated_duration TIME NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY unique_route (origin, destination)
 );
 
@@ -24,18 +22,14 @@ CREATE TABLE IF NOT EXISTS crew_members (
     date_of_birth DATE NOT NULL,
     experience_years INT NOT NULL,
     contact_number VARCHAR(20) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    email VARCHAR(100) UNIQUE NOT NULL
 );
 
 -- Crews table
 CREATE TABLE IF NOT EXISTS crews (
     crew_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    status ENUM('active', 'off-duty', 'training') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    status ENUM('active', 'off-duty', 'training') DEFAULT 'active'
 );
 
 -- Crew Assignments junction table
@@ -43,8 +37,6 @@ CREATE TABLE IF NOT EXISTS crew_assignments (
     assignment_id INT AUTO_INCREMENT PRIMARY KEY,
     crew_id INT NOT NULL,
     crew_member_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (crew_id) REFERENCES crews(crew_id),
     FOREIGN KEY (crew_member_id) REFERENCES crew_members(crew_member_id),
     UNIQUE KEY unique_crew_member_assignment (crew_id, crew_member_id)
@@ -59,8 +51,6 @@ CREATE TABLE IF NOT EXISTS aircraft (
     manufacturing_year YEAR NOT NULL,
     crew_id INT,
     status ENUM('active', 'maintenance', 'retired') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (crew_id) REFERENCES crews(crew_id)
 );
 
@@ -79,8 +69,6 @@ CREATE TABLE IF NOT EXISTS flights (
     business_class_multiplier DECIMAL(4,2) DEFAULT 2.5,
     economy_class_multiplier DECIMAL(4,2) DEFAULT 1.0,
     woman_only_multiplier DECIMAL(4,2) DEFAULT 1.2,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (route_id) REFERENCES routes(route_id),
     FOREIGN KEY (aircraft_id) REFERENCES aircraft(aircraft_id)
 );
@@ -97,9 +85,7 @@ CREATE TABLE IF NOT EXISTS users (
     nationality VARCHAR(50),
     date_of_birth DATE,
     contact_number VARCHAR(20),
-    gender VARCHAR(10),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    gender VARCHAR(10)
 );
 
 -- Tickets table with woman_only class
@@ -112,8 +98,6 @@ CREATE TABLE IF NOT EXISTS tickets (
     price DECIMAL(10, 2),
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_status ENUM('pending', 'completed', 'refunded') DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (flight_id) REFERENCES flights(flight_id),
     UNIQUE KEY unique_seat (flight_id, seat_number)
@@ -126,8 +110,6 @@ CREATE TABLE IF NOT EXISTS flight_seats (
     class ENUM('first', 'business', 'economy', 'woman_only') NOT NULL,
     available_seats JSON NOT NULL,
     booked_seats JSON NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (flight_id) REFERENCES flights(flight_id),
     UNIQUE KEY unique_flight_class (flight_id, class)
 );
@@ -251,7 +233,7 @@ INSERT INTO flight_seats (flight_id, class, available_seats, booked_seats) VALUE
 (3, 'woman_only', '["5A","5B","5C","5D","6A","6B","6C","6D"]', '[]'),
 (3, 'economy', '["7A","7B","7C","7D","8A","8B","8C","8D","9A","9B","9C","9D","10A","10B","10C","10D","11A","11B","11C","11D","12A","12B","12C","12D","13A","13B","13C","13D","14A","14B","14C","14D","15A","15B","15C","15D","16A","16B","16C","16D","17A","17B","17C","17D","18A","18B","18C","18D","19A","19B","19C","19D","20A","20B","20C","20D","21A","21B","21C","21D","22A","22B","22C","22D","23A","23B","23C","23D","24A","24B","24C","24D","25A","25B","25C","25D","26A","26B","26C","26D"]', '[]');
 
--- Only initialize first 3 flights for simplicity (can add more for other flights)
+-- Only initialize first 3 flights for simplicity
 
 -- Insert Tickets with class information
 -- We'll create tickets for different passengers on various flights
