@@ -1,5 +1,5 @@
-const { pool } = require('../config/database');
-const dateFormat = require('../utils/dateFormat');
+const { pool } = require("../config/database");
+const dateFormat = require("../utils/dateFormat");
 
 /**
  * Get all flights with pagination
@@ -9,9 +9,10 @@ const dateFormat = require('../utils/dateFormat');
  */
 exports.getAllFlights = async (page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
-  
-  const [rows] = await pool.query(`
-    SELECT 
+
+  const [rows] = await pool.query(
+    `
+    SELECT
       f.flight_id,
       f.flight_number,
       r.origin,
@@ -30,17 +31,19 @@ exports.getAllFlights = async (page = 1, limit = 10) => {
     LEFT JOIN crews c ON a.crew_id = c.crew_id
     ORDER BY f.departure_time
     LIMIT ? OFFSET ?
-  `, [limit, offset]);
-  
-  const [countRows] = await pool.query('SELECT COUNT(*) as count FROM flights');
+  `,
+    [limit, offset],
+  );
+
+  const [countRows] = await pool.query("SELECT COUNT(*) as count FROM flights");
   const count = countRows[0].count;
-  
+
   return {
     data: rows,
     page,
     limit,
     totalPages: Math.ceil(count / limit),
-    totalItems: count
+    totalItems: count,
   };
 };
 
@@ -50,8 +53,9 @@ exports.getAllFlights = async (page = 1, limit = 10) => {
  * @returns {Promise<Object>} Flight details
  */
 exports.getFlightById = async (id) => {
-  const [rows] = await pool.query(`
-    SELECT 
+  const [rows] = await pool.query(
+    `
+    SELECT
       f.flight_id,
       f.flight_number,
       r.route_id,
@@ -74,8 +78,10 @@ exports.getFlightById = async (id) => {
     JOIN aircraft a ON f.aircraft_id = a.aircraft_id
     LEFT JOIN crews c ON a.crew_id = c.crew_id
     WHERE f.flight_id = ?
-  `, [id]);
-  
+  `,
+    [id],
+  );
+
   return rows[0];
 };
 
@@ -91,27 +97,30 @@ exports.createFlight = async (flightData) => {
     aircraft_id,
     departure_time,
     arrival_time,
-    status = 'scheduled',
+    status = "scheduled",
     gate,
-    base_price
+    base_price,
   } = flightData;
-  
-  const [result] = await pool.query(`
+
+  const [result] = await pool.query(
+    `
     INSERT INTO flights (
-      flight_number, route_id, aircraft_id, 
+      flight_number, route_id, aircraft_id,
       departure_time, arrival_time, status, gate, base_price
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
-    flight_number,
-    route_id,
-    aircraft_id,
-    departure_time,
-    arrival_time,
-    status,
-    gate,
-    base_price
-  ]);
-  
+  `,
+    [
+      flight_number,
+      route_id,
+      aircraft_id,
+      departure_time,
+      arrival_time,
+      status,
+      gate,
+      base_price,
+    ],
+  );
+
   return result.insertId;
 };
 
@@ -130,10 +139,11 @@ exports.updateFlight = async (id, flightData) => {
     arrival_time,
     status,
     gate,
-    base_price
+    base_price,
   } = flightData;
-  
-  const [result] = await pool.query(`
+
+  const [result] = await pool.query(
+    `
     UPDATE flights
     SET
       flight_number = COALESCE(?, flight_number),
@@ -145,18 +155,20 @@ exports.updateFlight = async (id, flightData) => {
       gate = COALESCE(?, gate),
       base_price = COALESCE(?, base_price)
     WHERE flight_id = ?
-  `, [
-    flight_number,
-    route_id,
-    aircraft_id,
-    departure_time,
-    arrival_time,
-    status,
-    gate,
-    base_price,
-    id
-  ]);
-  
+  `,
+    [
+      flight_number,
+      route_id,
+      aircraft_id,
+      departure_time,
+      arrival_time,
+      status,
+      gate,
+      base_price,
+      id,
+    ],
+  );
+
   return result.affectedRows > 0;
 };
 
@@ -166,7 +178,9 @@ exports.updateFlight = async (id, flightData) => {
  * @returns {Promise<boolean>} Whether deletion was successful
  */
 exports.deleteFlight = async (id) => {
-  const [result] = await pool.query('DELETE FROM flights WHERE flight_id = ?', [id]);
+  const [result] = await pool.query("DELETE FROM flights WHERE flight_id = ?", [
+    id,
+  ]);
   return result.affectedRows > 0;
 };
 
@@ -178,8 +192,9 @@ exports.deleteFlight = async (id) => {
  * @returns {Promise<Array>} Matching flights
  */
 exports.searchFlightsByRouteAndDate = async (origin, destination, date) => {
-  const [rows] = await pool.query(`
-    SELECT 
+  const [rows] = await pool.query(
+    `
+    SELECT
       f.flight_id,
       f.flight_number,
       r.origin,
@@ -191,21 +206,23 @@ exports.searchFlightsByRouteAndDate = async (origin, destination, date) => {
       a.model AS aircraft_model,
       (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS booked_seats,
       a.capacity AS total_seats
-    FROM 
+    FROM
       flights f
-    JOIN 
+    JOIN
       routes r ON f.route_id = r.route_id
-    JOIN 
+    JOIN
       aircraft a ON f.aircraft_id = a.aircraft_id
-    WHERE 
-      r.origin = ? AND 
-      r.destination = ? AND 
+    WHERE
+      r.origin = ? AND
+      r.destination = ? AND
       DATE(f.departure_time) = ? AND
       f.status != 'canceled'
-    ORDER BY 
+    ORDER BY
       f.departure_time
-  `, [origin, destination, date]);
-  
+  `,
+    [origin, destination, date],
+  );
+
   return rows;
 };
 
@@ -216,8 +233,9 @@ exports.searchFlightsByRouteAndDate = async (origin, destination, date) => {
  * @returns {Promise<Array>} Matching flights
  */
 exports.searchFlightsByRoute = async (origin, destination) => {
-  const [rows] = await pool.query(`
-    SELECT 
+  const [rows] = await pool.query(
+    `
+    SELECT
       f.flight_id,
       f.flight_number,
       r.origin,
@@ -228,23 +246,23 @@ exports.searchFlightsByRoute = async (origin, destination) => {
       a.model AS aircraft_model,
       (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS booked_seats,
       a.capacity AS total_seats
-    FROM 
+    FROM
       flights f
-    JOIN 
+    JOIN
       routes r ON f.route_id = r.route_id
-    JOIN 
+    JOIN
       aircraft a ON f.aircraft_id = a.aircraft_id
-    WHERE 
-      r.origin = ? AND 
+    WHERE
+      r.origin = ? AND
       r.destination = ?
-    ORDER BY 
+    ORDER BY
       f.departure_time
-  `, [origin, destination]);
-  
+  `,
+    [origin, destination],
+  );
+
   return rows;
 };
-
-
 
 /**
  * Generate flight schedule
@@ -253,8 +271,9 @@ exports.searchFlightsByRoute = async (origin, destination) => {
  * @returns {Promise<Array>} Flight schedule
  */
 exports.generateFlightSchedule = async (startDate, endDate) => {
-  const [rows] = await pool.query(`
-    SELECT 
+  const [rows] = await pool.query(
+    `
+    SELECT
       f.flight_id,
       f.flight_number,
       r.origin,
@@ -267,20 +286,22 @@ exports.generateFlightSchedule = async (startDate, endDate) => {
       c.name AS crew_name,
       (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS passengers_count,
       a.capacity AS total_capacity
-    FROM 
+    FROM
       flights f
-    JOIN 
+    JOIN
       routes r ON f.route_id = r.route_id
-    JOIN 
+    JOIN
       aircraft a ON f.aircraft_id = a.aircraft_id
-    LEFT JOIN 
+    LEFT JOIN
       crews c ON a.crew_id = c.crew_id
-    WHERE 
+    WHERE
       DATE(f.departure_time) BETWEEN ? AND ?
-    ORDER BY 
+    ORDER BY
       f.departure_time
-  `, [startDate, endDate]);
-  
+  `,
+    [startDate, endDate],
+  );
+
   return rows;
 };
 
@@ -292,30 +313,76 @@ exports.generateFlightSchedule = async (startDate, endDate) => {
  * @param {number} excludeFlightId - Flight ID to exclude from check
  * @returns {Promise<boolean>} Whether aircraft is available
  */
-exports.isAircraftAvailable = async (aircraftId, departure, arrival, excludeFlightId = null) => {
+exports.isAircraftAvailable = async (
+  aircraftId,
+  departure,
+  arrival,
+  excludeFlightId = null,
+) => {
   let query = `
-    SELECT COUNT(*) AS count FROM flights 
-    WHERE aircraft_id = ? 
-    AND ((departure_time <= ? AND arrival_time >= ?) 
-         OR (departure_time <= ? AND arrival_time >= ?) 
+    SELECT COUNT(*) AS count FROM flights
+    WHERE aircraft_id = ?
+    AND ((departure_time <= ? AND arrival_time >= ?)
+         OR (departure_time <= ? AND arrival_time >= ?)
          OR (departure_time >= ? AND arrival_time <= ?))
     AND status NOT IN ('canceled', 'arrived')
   `;
-  
+
   const params = [
-    aircraftId, 
-    departure, departure, 
-    arrival, arrival, 
-    departure, arrival
+    aircraftId,
+    departure,
+    departure,
+    arrival,
+    arrival,
+    departure,
+    arrival,
   ];
-  
+
   if (excludeFlightId) {
-    query += ' AND flight_id != ?';
+    query += " AND flight_id != ?";
     params.push(excludeFlightId);
   }
-  
+
   const [rows] = await pool.query(query, params);
   return rows[0].count === 0;
+};
+
+/**
+ * Get flight by flight number
+ * @param {string} flightNumber - Flight number
+ * @returns {Promise<Object>} Flight details
+ */
+exports.getFlightByNumber = async (flightNumber) => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      f.flight_id,
+      f.flight_number,
+      r.route_id,
+      r.origin,
+      r.destination,
+      f.aircraft_id,
+      a.model AS aircraft_model,
+      a.registration_number,
+      f.departure_time,
+      f.arrival_time,
+      f.status,
+      f.gate,
+      f.base_price,
+      c.crew_id,
+      c.name AS crew_name,
+      (SELECT COUNT(*) FROM tickets t WHERE t.flight_id = f.flight_id) AS booked_seats,
+      a.capacity AS total_capacity
+    FROM flights f
+    JOIN routes r ON f.route_id = r.route_id
+    JOIN aircraft a ON f.aircraft_id = a.aircraft_id
+    LEFT JOIN crews c ON a.crew_id = c.crew_id
+    WHERE f.flight_number = ?
+  `,
+    [flightNumber],
+  );
+
+  return rows[0];
 };
 
 /**
@@ -326,10 +393,10 @@ exports.isAircraftAvailable = async (aircraftId, departure, arrival, excludeFlig
  */
 exports.updateFlightStatus = async (id, status) => {
   const [result] = await pool.query(
-    'UPDATE flights SET status = ? WHERE flight_id = ?', 
-    [status, id]
+    "UPDATE flights SET status = ? WHERE flight_id = ?",
+    [status, id],
   );
-  
+
   return result.affectedRows > 0;
 };
 
@@ -342,24 +409,24 @@ exports.updateFlightStatus = async (id, status) => {
 exports.calculateTicketPrice = async (flightId, ticketClass) => {
   // Get the flight base price
   const [flightRows] = await pool.query(
-    'SELECT base_price FROM flights WHERE flight_id = ?',
-    [flightId]
+    "SELECT base_price FROM flights WHERE flight_id = ?",
+    [flightId],
   );
-  
+
   if (flightRows.length === 0) {
-    throw new Error('Flight not found');
+    throw new Error("Flight not found");
   }
-  
+
   const basePrice = flightRows[0].base_price;
-  
+
   // Apply multiplier based on class
   const classMultipliers = {
     economy: 1.0,
     business: 2.5,
-    first: 4.0
+    first: 4.0,
   };
-  
+
   const multiplier = classMultipliers[ticketClass] || 1.0;
-  
+
   return basePrice * multiplier;
 };
