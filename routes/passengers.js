@@ -11,7 +11,7 @@ const {
 } = require("../controllers/passengerController");
 
 const { protect, authorize } = require("../middleware/auth");
-const { validatePassenger } = require("../middleware/validator");
+const { validateUser } = require("../middleware/validator");
 
 // Passenger tickets
 router.route("/:id/tickets").get(protect, getPassengerTickets);
@@ -20,16 +20,15 @@ router.route("/:id/tickets").get(protect, getPassengerTickets);
 router
   .route("/")
   .get(protect, authorize("admin", "staff"), getPassengers)
-  .post(validatePassenger, createPassenger);
+  .post(validateUser, createPassenger);
 
 router
   .route("/:id")
   .get(protect, getPassenger)
-  .put(protect, validatePassenger, updatePassenger)
+  .put(protect, validateUser, updatePassenger)
   .delete(protect, authorize("admin"), deletePassenger);
 
 // Add this separately to avoid conflicts with your existing code
-// First, make sure this function exists in controllers/passengerController.js
 const {
   getPassengerByPassport,
 } = require("../controllers/passengerController");

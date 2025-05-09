@@ -199,3 +199,40 @@
 2025-04-09 13:25:35 info: Server running in development mode on port 3000
 2025-04-09 13:25:35 info: MySQL Database connected to localhost:airline_transportation
 2025-04-09 13:25:35 info: MySQL Database connected to localhost:airline_transportation
+2025-04-16 19:49:49 info: Server running in development mode on port 3000
+2025-04-16 19:49:49 info: MySQL Database connected to localhost:airline_transportation
+2025-04-16 19:49:49 info: MySQL Database connected to localhost:airline_transportation
+2025-04-16 21:08:30 error: Seats are already initialized for this flight
+2025-04-16 21:12:21 error: Seats are already initialized for this flight
+2025-04-16 21:13:25 error: Seats are already initialized for this flight
+2025-04-16 21:13:52 error: Requested seat is not available
+2025-04-16 21:14:31 error: Seats are already initialized for this flight
+2025-04-16 21:27:43 error: Seats are already initialized for this flight
+2025-04-16 21:29:55 error: Seats are already initialized for this flight
+2025-04-16 21:53:08 error: Woman-only seats can only be booked by female passengers
+2025-04-17 12:14:44 info: Server running in development mode on port 3000
+2025-04-17 12:14:44 info: MySQL Database connected to localhost:airline_transportation
+2025-04-17 12:14:44 info: MySQL Database connected to localhost:airline_transportation
+2025-04-17 12:35:49 error: Flight is already canceled
+2025-04-18 12:03:25 info: Server running in development mode on port 3000
+2025-04-18 12:03:25 info: MySQL Database connected to localhost:airline_transportation
+2025-04-18 12:03:25 info: MySQL Database connected to localhost:airline_transportation
+2025-04-30 17:10:01 info: Server running in development mode on port 3000
+2025-04-30 17:10:02 info: MySQL Database connected to localhost:airline_transportation
+2025-04-30 17:10:02 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 14:37:39 info: Server running in development mode on port 3000
+2025-05-09 14:37:39 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 14:37:39 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 14:53:53 info: Server running in development mode on port 3000
+2025-05-09 14:53:53 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 14:53:53 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 15:20:54 info: Server running in development mode on port 3000
+2025-05-09 15:20:54 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 15:20:54 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 15:47:39 info: Server running in development mode on port 3000
+2025-05-09 15:47:39 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 15:47:39 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 16:03:23 info: Server running in development mode on port 3000
+2025-05-09 16:03:23 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 16:03:23 info: MySQL Database connected to localhost:airline_transportation
+2025-05-09 16:04:46 error: Passenger with this passport number already exists

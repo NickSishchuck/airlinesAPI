@@ -63,3 +63,14 @@
 2025-04-08 18:27:45 error: Please provide email and password
 2025-04-08 18:27:48 error: Please provide email and password
 2025-04-08 19:36:05 error: Flight is already canceled
+2025-04-15 22:52:28 error: Invalid credentials
+2025-04-16 21:08:30 error: Seats are already initialized for this flight
+2025-04-16 21:12:21 error: Seats are already initialized for this flight
+2025-04-16 21:13:25 error: Seats are already initialized for this flight
+2025-04-16 21:13:52 error: Requested seat is not available
+2025-04-16 21:14:31 error: Seats are already initialized for this flight
+2025-04-16 21:27:43 error: Seats are already initialized for this flight
+2025-04-16 21:29:55 error: Seats are already initialized for this flight
+2025-04-16 21:53:08 error: Woman-only seats can only be booked by female passengers
+2025-04-17 12:35:49 error: Flight is already canceled
+2025-05-09 16:04:46 error: Passenger with this passport number already exists
