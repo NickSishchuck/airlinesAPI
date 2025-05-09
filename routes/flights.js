@@ -48,6 +48,6 @@ router
   .delete(protect, authorize("admin"), deleteFlight);
 
 // Flight by flight number route
-router.route("/flight-number/:flightNumber").get(getFlightByNumber);
+router.route("flight-number/:flightNumber").get(getFlightByNumber);
 
 module.exports = router;

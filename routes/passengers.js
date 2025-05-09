@@ -32,6 +32,6 @@ router
   .delete(protect, authorize("admin"), deletePassenger);
 
 // Passenger by passport number route
-router.route("/passport/:passportNumber").get(protect, getPassengerByPassport);
+router.route("passport/:passportNumber").get(protect, getPassengerByPassport);
 
 module.exports = router;
