@@ -10,6 +10,7 @@ const {
   updatePassenger,
   deletePassenger,
   getPassengerTickets,
+  getPassengerByPassport,
 } = require("../controllers/passengerController");
 
 const { protect, authorize } = require("../middleware/auth");

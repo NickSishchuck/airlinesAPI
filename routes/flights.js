@@ -12,6 +12,7 @@ const {
   cancelFlight,
   getFlightPrices,
   getFlightCrew,
+  getFlightByNumber,
 } = require("../controllers/flightController");
 
 const { protect, authorize } = require("../middleware/auth");
