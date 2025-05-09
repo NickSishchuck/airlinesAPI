@@ -80,9 +80,6 @@ exports.createPassenger = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get passenger by passport number
-// @route   GET /api/passengers/passport/:passportNumber
-// @access  Private/Admin/Staff
 exports.getPassengerByPassport = asyncHandler(async (req, res, next) => {
   const { passportNumber } = req.params;
 
@@ -91,24 +88,12 @@ exports.getPassengerByPassport = asyncHandler(async (req, res, next) => {
   }
 
   const passenger = await Passenger.getPassengerByPassport(passportNumber);
-
   if (!passenger) {
     return next(
       new ErrorResponse(
         `Passenger not found with passport number ${passportNumber}`,
         404,
       ),
-    );
-  }
-
-  // If not admin/staff, only allow access to your own data
-  if (
-    req.user.role !== "admin" &&
-    req.user.role !== "staff" &&
-    req.user.passport_number !== passportNumber
-  ) {
-    return next(
-      new ErrorResponse("Not authorized to access this passenger data", 403),
     );
   }
 

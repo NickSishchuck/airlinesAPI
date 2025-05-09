@@ -1,6 +1,4 @@
 const express = require("express");
-
-//TODO rename the thing to users
 const router = express.Router();
 
 const {
@@ -10,7 +8,6 @@ const {
   updatePassenger,
   deletePassenger,
   getPassengerTickets,
-  getPassengerByPassport,
 } = require("../controllers/passengerController");
 
 const { protect, authorize } = require("../middleware/auth");
@@ -31,7 +28,13 @@ router
   .put(protect, validatePassenger, updatePassenger)
   .delete(protect, authorize("admin"), deletePassenger);
 
-// Passenger by passport number route
-router.route("passport/:passportNumber").get(protect, getPassengerByPassport);
+// Add this separately to avoid conflicts with your existing code
+// First, make sure this function exists in controllers/passengerController.js
+const {
+  getPassengerByPassport,
+} = require("../controllers/passengerController");
+
+// Then add the route
+router.get("/passport/:passportNumber", protect, getPassengerByPassport);
 
 module.exports = router;
