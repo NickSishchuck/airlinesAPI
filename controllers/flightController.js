@@ -350,6 +350,29 @@ exports.getFlightPrices = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Get flight pricing multipliers
+// @route   GET /api/flights/:id/pricing
+// @access  Public
+exports.getFlightPricing = asyncHandler(async (req, res, next) => {
+  const flight = await Flight.getFlightById(req.params.id);
+
+  if (!flight) {
+    return next(
+      new ErrorResponse(`Flight not found with id of ${req.params.id}`, 404),
+    );
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      base_price: parseFloat(flight.base_price),
+      business_multiplier: parseFloat(flight.business_class_multiplier || 2.5),
+      first_multiplier: parseFloat(flight.first_class_multiplier || 4.0),
+      woman_only_multiplier: parseFloat(flight.woman_only_multiplier || 1.2),
+    },
+  });
+});
+
 // @desc    Get flight crew details
 // @route   GET /api/flights/:id/crew
 // @access  Private
