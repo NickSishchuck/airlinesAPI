@@ -430,3 +430,141 @@ exports.calculateTicketPrice = async (flightId, ticketClass) => {
 
   return basePrice * multiplier;
 };
+
+/**
+ * Get all flight pricing rules with pagination
+ * @param {number} page - Page number
+ * @param {number} limit - Items per page
+ * @returns {Promise<Object>} Paginated pricing rules
+ */
+exports.getAllFlightPricing = async (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  
+  const [rows] = await pool.query(`
+    SELECT 
+      f.flight_id as pricing_id,
+      r.origin,
+      r.destination,
+      f.base_price,
+      f.economy_class_multiplier as economy_multiplier,
+      f.business_class_multiplier as business_multiplier,
+      f.first_class_multiplier as first_multiplier,
+      f.woman_only_multiplier
+    FROM flights f
+    JOIN routes r ON f.route_id = r.route_id
+    ORDER BY r.origin, r.destination
+    LIMIT ? OFFSET ?
+  `, [limit, offset]);
+  
+  const [countRows] = await pool.query('SELECT COUNT(*) as count FROM flights');
+  const count = countRows[0].count;
+  
+  return {
+    data: rows,
+    page,
+    limit,
+    totalPages: Math.ceil(count / limit),
+    totalItems: count
+  };
+};
+
+/**
+ * Get flight pricing rule by ID
+ * @param {number} id - Flight ID
+ * @returns {Promise<Object>} Pricing rule details
+ */
+exports.getFlightPricingById = async (id) => {
+  const [rows] = await pool.query(`
+    SELECT 
+      f.flight_id as pricing_id,
+      r.origin,
+      r.destination,
+      f.base_price,
+      f.economy_class_multiplier as economy_multiplier,
+      f.business_class_multiplier as business_multiplier,
+      f.first_class_multiplier as first_multiplier,
+      f.woman_only_multiplier
+    FROM flights f
+    JOIN routes r ON f.route_id = r.route_id
+    WHERE f.flight_id = ?
+  `, [id]);
+  
+  return rows[0];
+};
+
+/**
+ * Search flight pricing by origin and/or destination
+ * @param {string} origin - Origin airport code
+ * @param {string} destination - Destination airport code
+ * @returns {Promise<Array>} Matching flight pricing details
+ */
+exports.searchFlightPricing = async (origin, destination) => {
+  let query = `
+    SELECT 
+      f.flight_id as pricing_id,
+      r.origin,
+      r.destination,
+      f.base_price,
+      f.economy_class_multiplier as economy_multiplier,
+      f.business_class_multiplier as business_multiplier,
+      f.first_class_multiplier as first_multiplier,
+      f.woman_only_multiplier
+    FROM flights f
+    JOIN routes r ON f.route_id = r.route_id
+    WHERE 1=1
+  `;
+  
+  const params = [];
+  
+  if (origin) {
+    query += ` AND r.origin = ?`;
+    params.push(origin);
+  }
+  
+  if (destination) {
+    query += ` AND r.destination = ?`;
+    params.push(destination);
+  }
+  
+  query += ` ORDER BY r.origin, r.destination`;
+  
+  const [rows] = await pool.query(query, params);
+  
+  return rows;
+};
+
+/**
+ * Update flight pricing
+ * @param {number} id - Flight ID
+ * @param {Object} pricingData - Pricing data to update
+ * @returns {Promise<boolean>} Whether update was successful
+ */
+exports.updateFlightPricing = async (id, pricingData) => {
+  const {
+    base_price,
+    economy_multiplier,
+    business_multiplier,
+    first_multiplier,
+    woman_only_multiplier
+  } = pricingData;
+  
+  const [result] = await pool.query(`
+    UPDATE flights
+    SET
+      base_price = COALESCE(?, base_price),
+      economy_class_multiplier = COALESCE(?, economy_class_multiplier),
+      business_class_multiplier = COALESCE(?, business_class_multiplier),
+      first_class_multiplier = COALESCE(?, first_class_multiplier),
+      woman_only_multiplier = COALESCE(?, woman_only_multiplier)
+    WHERE flight_id = ?
+  `, [
+    base_price,
+    economy_multiplier,
+    business_multiplier,
+    first_multiplier,
+    woman_only_multiplier,
+    id
+  ]);
+  
+  return result.affectedRows > 0;
+};

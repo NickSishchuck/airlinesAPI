@@ -13,8 +13,9 @@ const {
   getFlightPrices,
   getFlightCrew,
   getFlightByNumber,
-  getFlightPricing,
 } = require("../controllers/flightController");
+
+const { getFlightPricingByFlightId } = require('../controllers/flightPricingController');
 
 const { protect, authorize } = require("../middleware/auth");
 
@@ -33,8 +34,8 @@ router
 // Flight prices route
 router.route("/:id/prices").get(getFlightPrices);
 
-// Flight pricing route
-router.route("/:id/pricing").get(getFlightPricing);
+// Flight pricing route - NEW
+router.route("/:id/pricing").get(getFlightPricingByFlightId);
 
 // Flight crew route
 router.route("/:id/crew").get(protect, getFlightCrew);

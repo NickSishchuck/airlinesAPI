@@ -35,6 +35,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/flight-seats", require("./routes/flightSeats"));
 app.use("/api/passengers", require("./routes/passengers"));
+app.use("/api/flight-pricing", require("./routes/flightPricing"));
 //app.use('/api', docsRouter);
 
 // Home route
