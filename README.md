@@ -237,18 +237,6 @@ The system logs information to:
 - `logs/combined.log` (all levels)
 - `logs/error.log` (error level only)
 
-## Development
-
-### Running in Development Mode
-```bash
-npm run dev
-```
-
-### Testing
-```bash
-npm test
-```
-
 ## License
 
 [MIT](LICENSE)
