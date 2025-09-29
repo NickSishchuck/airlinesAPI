@@ -8,7 +8,6 @@ const { formatDate } = require('../utils/dateFormat');
  * @returns {Promise<Object>} Revenue report
  */
 exports.generateRevenueReport = async (startDate, endDate) => {
-  // Revenue by route
   const [routeRevenue] = await pool.query(`
     SELECT 
       r.route_id,
@@ -26,7 +25,6 @@ exports.generateRevenueReport = async (startDate, endDate) => {
     ORDER BY total_revenue DESC
   `, [startDate, endDate]);
 
-  // Revenue by class
   const [classRevenue] = await pool.query(`
     SELECT 
       t.class,

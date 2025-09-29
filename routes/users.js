@@ -10,7 +10,6 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// Restrict all routes to admin
 router.use(protect);
 router.use(authorize('admin'));
 

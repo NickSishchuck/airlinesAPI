@@ -50,7 +50,6 @@ exports.getFlightSeatMap = asyncHandler(async (req, res, next) => {
   
   const seatMap = await FlightSeats.getFlightSeatMap(req.params.flightId);
   
-  // Calculate statistics for each class
   const seatStats = {};
   let totalAvailable = 0;
   let totalBooked = 0;
@@ -71,7 +70,6 @@ exports.getFlightSeatMap = asyncHandler(async (req, res, next) => {
     totalBooked += booked;
   }
   
-  // Calculate price for each class
   const prices = {};
   if (flight.base_price) {
     prices.economy = parseFloat(flight.base_price) * parseFloat(flight.economy_class_multiplier || 1.0);
@@ -120,7 +118,6 @@ exports.getAvailableSeatsByClass = asyncHandler(async (req, res, next) => {
   
   const availableSeats = await FlightSeats.getAvailableSeatsByClass(req.params.flightId, seatClass);
   
-  // Calculate price for this class
   let price = null;
   if (flight.base_price) {
     const multiplierField = `${seatClass}_class_multiplier`;
@@ -198,10 +195,7 @@ exports.validateSeat = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Invalid seat class: ${seatClass}`, 400));
   }
   
-  // Check if seat is available
   const isAvailable = await FlightSeats.isSeatAvailable(req.params.flightId, seatClass, seatNumber);
-  
-  // If woman_only class, check gender
   let genderRestriction = false;
   let genderValid = true;
   
@@ -235,7 +229,6 @@ exports.reconfigureFlightSeats = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Flight not found with id of ${req.params.flightId}`, 404));
   }
   
-  // Validate configuration data
   const { configuration } = req.body;
   
   if (!configuration) {

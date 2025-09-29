@@ -13,14 +13,12 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// Crew member assignments and flights
 router.route('/:id/assignments')
   .get(protect, authorize('admin', 'worker'), getCrewMemberAssignments);
 
 router.route('/:id/flights')
   .get(protect, authorize('admin', 'worker'), getCrewMemberFlights);
 
-// Main resource routes
 router.route('/')
   .get(protect, authorize('admin', 'worker'), getCrewMembers)
   .post(protect, authorize('admin'), createCrewMember);

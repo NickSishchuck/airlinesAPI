@@ -10,7 +10,6 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
   const limit = parseInt(req.query.limit, 10) || 10;
   const offset = (page - 1) * limit;
   
-  // Get users with pagination
   const [rows] = await pool.query(`
     SELECT 
       user_id, name, email, role, created_at, updated_at
@@ -19,7 +18,6 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
     LIMIT ? OFFSET ?
   `, [limit, offset]);
   
-  // Get total count
   const [countRows] = await pool.query('SELECT COUNT(*) as count FROM users');
   const count = countRows[0].count;
   
@@ -63,12 +61,10 @@ exports.getUser = asyncHandler(async (req, res, next) => {
 exports.createUser = asyncHandler(async (req, res, next) => {
   const { name, email, password, role } = req.body;
   
-  // Validate required fields
   if (!name || !email || !password) {
     return next(new ErrorResponse('Please provide name, email and password', 400));
   }
   
-  // Check if email already exists
   const [existingUser] = await pool.query(
     'SELECT * FROM users WHERE email = ?',
     [email]
@@ -78,7 +74,6 @@ exports.createUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Email already in use', 400));
   }
   
-  // Create user with plaintext password
   const [result] = await pool.query(`
     INSERT INTO users (name, email, password, role)
     VALUES (?, ?, ?, ?)
@@ -102,14 +97,12 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 exports.updateUser = asyncHandler(async (req, res, next) => {
   const { name, email, password, role } = req.body;
   
-  // Check if user exists
   const [user] = await pool.query('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
   
   if (user.length === 0) {
     return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
   }
   
-  // Check if email is taken
   if (email && email !== user[0].email) {
     const [existingUser] = await pool.query(
       'SELECT * FROM users WHERE email = ? AND user_id != ?',
@@ -121,7 +114,6 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     }
   }
   
-  // Update user
   const passwordClause = password ? ', password = ?' : '';
   const query = `
     UPDATE users
@@ -160,14 +152,12 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/users/:id
 // @access  Private/Admin
 exports.deleteUser = asyncHandler(async (req, res, next) => {
-  // Check if user exists
   const [user] = await pool.query('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
   
   if (user.length === 0) {
     return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
   }
   
-  // Delete user
   await pool.query('DELETE FROM users WHERE user_id = ?', [req.params.id]);
   
   res.status(200).json({

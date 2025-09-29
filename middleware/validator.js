@@ -2,7 +2,6 @@
 const { check, validationResult } = require('express-validator');
 const ErrorResponse = require('../utils/errorResponse');
 
-// Process validation results
 const validateResults = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -11,7 +10,6 @@ const validateResults = (req, res, next) => {
   next();
 };
 
-// Flight input validation
 exports.validateFlight = [
   check('flight_number')
     .not()
@@ -49,7 +47,6 @@ exports.validateFlight = [
   validateResults
 ];
 
-// Ticket input validation
 exports.validateTicket = [
   check('user_id')
     .isInt({ min: 1 })
@@ -73,7 +70,6 @@ exports.validateTicket = [
   validateResults
 ];
 
-// User input validation
 exports.validateUser = [
   check('first_name')
     .not()
@@ -117,7 +113,6 @@ exports.validateUser = [
   validateResults
 ];
 
-// Crew validation
 exports.validateCrew = [
   check('name')
     .not()
@@ -134,7 +129,6 @@ exports.validateCrew = [
   validateResults
 ];
 
-// Crew Member validation
 exports.validateCrewMember = [
   check('first_name')
     .not()

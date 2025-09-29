@@ -16,18 +16,14 @@ exports.createRecurringFlights = async (flightTemplate, startDate, endDate, days
   const end = new Date(endDate);
   
   try {
-    // Validate template has required fields
     if (!flightTemplate.flight_number || !flightTemplate.route_id || 
         !flightTemplate.aircraft_id || !flightTemplate.departure_time) {
       throw new Error('Missing required flight template fields');
     }
-    
-    // Get base departure time parts (hours, minutes)
     const baseTime = new Date(flightTemplate.departure_time);
     const hours = baseTime.getHours();
     const minutes = baseTime.getMinutes();
-    
-    // Get flight duration from template times or route
+
     let durationMs;
     if (flightTemplate.arrival_time) {
       durationMs = new Date(flightTemplate.arrival_time) - baseTime;
@@ -37,27 +33,21 @@ exports.createRecurringFlights = async (flightTemplate, startDate, endDate, days
         'SELECT estimated_duration FROM routes WHERE route_id = ?',
         [flightTemplate.route_id]
       );
-      
+
       if (routeRows.length === 0) {
         throw new Error('Route not found');
       }
-      
       // Parse HH:MM:SS to milliseconds
       const [routeHours, routeMinutes, routeSeconds] = routeRows[0].estimated_duration.split(':').map(Number);
       durationMs = ((routeHours * 60 + routeMinutes) * 60 + routeSeconds) * 1000;
     }
-    
-    // Iterate through each day in the range
+
     for (let day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
-      // Check if current day is in the specified days of week
       if (daysOfWeek.includes(day.getDay())) {
-        // Create departure and arrival times for this day
         const departureTime = new Date(day);
         departureTime.setHours(hours, minutes, 0, 0);
-        
         const arrivalTime = new Date(departureTime.getTime() + durationMs);
-        
-        // Create the flight
+
         const [result] = await pool.query(`
           INSERT INTO flights (
             flight_number, route_id, aircraft_id, 

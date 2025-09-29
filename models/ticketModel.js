@@ -255,11 +255,9 @@ exports.generateTicketSalesReport = async (startDate, endDate) => {
       f.departure_time, t.class
   `, [startDate, endDate]);
   
-  // For each flight, get the available seat counts by class
   const enhancedReport = [];
   
   for (const row of rows) {
-    // Get seat availability for this flight
     const seatMap = await FlightSeats.getFlightSeatMap(row.flight_id);
     
     const enhancedRow = {
@@ -268,7 +266,6 @@ exports.generateTicketSalesReport = async (startDate, endDate) => {
       seat_availability: {}
     };
     
-    // Add seat availability details
     if (seatMap[row.ticket_class]) {
       enhancedRow.available_seats = seatMap[row.ticket_class].available.length;
       enhancedRow.seat_availability = {
@@ -306,15 +303,12 @@ exports.createTicket = async (ticketData) => {
       payment_status = 'pending'
     } = ticketData;
     
-    // Check if the seat is available
     const seatAvailable = await FlightSeats.isSeatAvailable(flight_id, ticketClass, seat_number);
     if (!seatAvailable) {
       throw new Error('Seat is not available');
     }
     
-    // If woman_only class, check if passenger is female
     if (ticketClass === 'woman_only') {
-      // Get user's gender
       const [userRows] = await connection.query(
         'SELECT gender FROM users WHERE user_id = ?',
         [user_id]
@@ -329,7 +323,6 @@ exports.createTicket = async (ticketData) => {
       }
     }
     
-    // If price is not provided, calculate it based on flight base price and class multiplier
     if (!price) {
       const [flightRows] = await connection.query(
         `SELECT 
@@ -352,10 +345,7 @@ exports.createTicket = async (ticketData) => {
       price = flight.base_price * flight[multiplierField];
     }
     
-    // Book the seat in the flight_seats table
     await FlightSeats.bookSeat(flight_id, ticketClass, seat_number);
-    
-    // Create the ticket
     const [result] = await connection.query(`
       INSERT INTO tickets (
         user_id, flight_id, seat_number, 
@@ -393,7 +383,6 @@ exports.updateTicket = async (id, ticketData) => {
   try {
     await connection.beginTransaction();
     
-    // Get current ticket details
     const [ticketRows] = await connection.query(
       'SELECT flight_id, class, seat_number FROM tickets WHERE ticket_id = ?',
       [id]
@@ -415,13 +404,10 @@ exports.updateTicket = async (id, ticketData) => {
     let finalTicketClass = ticketClass || currentTicket.class;
     let finalPrice = price;
     
-    // If changing seat or class, we need to handle seat availability
     if ((seat_number && seat_number !== currentTicket.seat_number) || 
         (ticketClass && ticketClass !== currentTicket.class)) {
       
-      // If changing class, need to validate woman_only restrictions
       if (ticketClass === 'woman_only' && ticketClass !== currentTicket.class) {
-        // Get user's gender
         const [userRows] = await connection.query(
           'SELECT u.gender FROM tickets t JOIN users u ON t.user_id = u.user_id WHERE t.ticket_id = ?',
           [id]
@@ -432,7 +418,6 @@ exports.updateTicket = async (id, ticketData) => {
         }
       }
       
-      // Check if the new seat is available
       if (finalSeatNumber !== currentTicket.seat_number || finalTicketClass !== currentTicket.class) {
         const seatAvailable = await FlightSeats.isSeatAvailable(
           currentTicket.flight_id, 
@@ -444,14 +429,12 @@ exports.updateTicket = async (id, ticketData) => {
           throw new Error('The requested seat is not available');
         }
         
-        // Release the old seat
         await FlightSeats.releaseSeat(
           currentTicket.flight_id,
           currentTicket.class,
           currentTicket.seat_number
         );
         
-        // Book the new seat
         await FlightSeats.bookSeat(
           currentTicket.flight_id,
           finalTicketClass,
@@ -460,9 +443,7 @@ exports.updateTicket = async (id, ticketData) => {
       }
     }
     
-    // If updating the class and not providing a price, recalculate
     if (ticketClass && ticketClass !== currentTicket.class && !price) {
-      // Get flight details for pricing
       const [flightRows] = await connection.query(
         `SELECT 
           base_price, 
@@ -482,7 +463,6 @@ exports.updateTicket = async (id, ticketData) => {
       }
     }
     
-    // Update the ticket record
     const [result] = await connection.query(`
       UPDATE tickets
       SET
@@ -521,7 +501,6 @@ exports.deleteTicket = async (id) => {
   try {
     await connection.beginTransaction();
     
-    // Get ticket details
     const [ticketRows] = await connection.query(
       'SELECT flight_id, class, seat_number FROM tickets WHERE ticket_id = ?',
       [id]
@@ -533,14 +512,12 @@ exports.deleteTicket = async (id) => {
     
     const ticket = ticketRows[0];
     
-    // Release the seat
     await FlightSeats.releaseSeat(
       ticket.flight_id,
       ticket.class,
       ticket.seat_number
     );
     
-    // Delete the ticket
     const [result] = await connection.query(
       'DELETE FROM tickets WHERE ticket_id = ?', 
       [id]
@@ -593,7 +570,6 @@ exports.updatePaymentStatus = async (id, status) => {
  */
 exports.validateSeatForBooking = async (flightId, seatNumber, seatClass, userId) => {
   try {
-    // Check if the seat exists and is available
     const seatAvailable = await FlightSeats.isSeatAvailable(flightId, seatClass, seatNumber);
     
     if (!seatAvailable) {
@@ -603,7 +579,6 @@ exports.validateSeatForBooking = async (flightId, seatNumber, seatClass, userId)
       };
     }
     
-    // If woman_only class, check gender
     if (seatClass === 'woman_only') {
       const [userRows] = await pool.query(
         'SELECT gender FROM users WHERE user_id = ?',
@@ -648,11 +623,9 @@ exports.validateSeatForBooking = async (flightId, seatNumber, seatClass, userId)
 exports.getAvailableSeatsByClass = async (flightId, seatClass = null) => {
   try {
     if (seatClass) {
-      // Return seats for specific class
       const seats = await FlightSeats.getAvailableSeatsByClass(flightId, seatClass);
       return { [seatClass]: seats };
     } else {
-      // Return all available seats by class
       return await FlightSeats.getAllAvailableSeats(flightId);
     }
   } catch (error) {

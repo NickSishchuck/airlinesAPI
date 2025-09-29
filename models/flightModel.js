@@ -407,7 +407,6 @@ exports.updateFlightStatus = async (id, status) => {
  * @returns {Promise<number>} Calculated ticket price
  */
 exports.calculateTicketPrice = async (flightId, ticketClass) => {
-  // Get the flight base price
   const [flightRows] = await pool.query(
     "SELECT base_price FROM flights WHERE flight_id = ?",
     [flightId],
@@ -419,7 +418,6 @@ exports.calculateTicketPrice = async (flightId, ticketClass) => {
 
   const basePrice = flightRows[0].base_price;
 
-  // Apply multiplier based on class
   const classMultipliers = {
     economy: 1.0,
     business: 2.5,

@@ -248,9 +248,6 @@ exports.isCrewQualifiedForAircraft = async (crewId, aircraftModel) => {
     }
   });
   
-  // Additional validation could be added based on aircraft model
-  // and crew member experience
-  
   return (
     roleCounts.captain >= 1 &&
     roleCounts.pilot >= 1 &&

@@ -1,7 +1,6 @@
 const winston = require('winston');
 const path = require('path');
 
-// Define log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.printf(
@@ -9,12 +8,10 @@ const logFormat = winston.format.combine(
   )
 );
 
-// Create the logger
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
   format: logFormat,
   transports: [
-    // Console output
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),

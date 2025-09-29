@@ -34,7 +34,6 @@ exports.getAllCrews = async (page = 1, limit = 10, status = null) => {
   
   const [rows] = await pool.query(query, params);
   
-  // Get total count with the same filter
   let countQuery = 'SELECT COUNT(*) as count FROM crews';
   const countParams = [];
   
@@ -119,7 +118,6 @@ exports.updateCrew = async (id, crewData) => {
  * @returns {Promise<boolean>} Whether deletion was successful
  */
 exports.deleteCrew = async (id) => {
-  // Check if crew is assigned to any aircraft
   const [aircraft] = await pool.query(
     'SELECT COUNT(*) AS count FROM aircraft WHERE crew_id = ?',
     [id]
@@ -196,7 +194,6 @@ exports.assignCrewMember = async (crewId, crewMemberId) => {
     
     return result.affectedRows > 0;
   } catch (error) {
-    // Unique constraint violation means the assignment already exists
     if (error.code === 'ER_DUP_ENTRY') {
       return false;
     }
@@ -245,7 +242,6 @@ exports.getCrewAircraft = async (crewId) => {
  * @returns {Promise<Object>} Validation result with status and message
  */
 exports.validateCrewComposition = async (crewId) => {
-  // Get all crew members
   const [members] = await pool.query(`
     SELECT cm.role
     FROM crew_members cm
@@ -253,7 +249,6 @@ exports.validateCrewComposition = async (crewId) => {
     WHERE ca.crew_id = ?
   `, [crewId]);
   
-  // Count by role
   const roleCounts = {
     captain: 0,
     pilot: 0,
@@ -266,7 +261,6 @@ exports.validateCrewComposition = async (crewId) => {
     }
   });
   
-  // Validation rules
   const result = {
     valid: true,
     messages: []

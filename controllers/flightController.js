@@ -48,7 +48,6 @@ exports.getFlight = asyncHandler(async (req, res, next) => {
 // @route   POST /api/flights
 // @access  Private/Admin
 exports.createFlight = asyncHandler(async (req, res, next) => {
-  // Check if aircraft is available for the time period
   const isAvailable = await Flight.isAircraftAvailable(
     req.body.aircraft_id,
     req.body.departure_time,
@@ -335,7 +334,7 @@ exports.getFlightPrices = asyncHandler(async (req, res, next) => {
   // Calculate prices for each class
   const prices = {
     economy: parseFloat(flight.base_price),
-    business: parseFloat(flight.base_price) * 2.5,
+    business: parseFloat(flight.base_price) * 2.5, //TODO: Make this easily changeble 
     first: parseFloat(flight.base_price) * 4.0,
   };
 
@@ -395,7 +394,6 @@ exports.getFlightCrew = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // Get crew details
   const crew = await Crew.getCrewById(aircraft.crew_id);
 
   if (!crew) {
@@ -404,10 +402,8 @@ exports.getFlightCrew = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // Get crew members
   const crewMembers = await Crew.getCrewMembers(crew.crew_id);
 
-  // Organize crew members by role
   const organizedCrew = {
     crew_id: crew.crew_id,
     crew_name: crew.name,

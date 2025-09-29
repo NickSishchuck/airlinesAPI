@@ -11,11 +11,9 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// Route flights
 router.route('/:id/flights')
   .get(getRouteFlights);
 
-// Main resource routes
 router.route('/')
   .get(getRoutes)
   .post(protect, authorize('admin'), createRoute);

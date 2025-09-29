@@ -62,9 +62,6 @@ exports.searchFlightPricing = asyncHandler(async (req, res, next) => {
 // @route   POST /api/flight-pricing
 // @access  Private/Admin
 exports.createFlightPricing = asyncHandler(async (req, res, next) => {
-  // For creating a new flight pricing, we'll need to create a new flight
-  // with the specified route, base price, and multipliers
-  // This is a simplified implementation and should be expanded based on your needs
   const { 
     origin, 
     destination, 
@@ -99,8 +96,6 @@ exports.createFlightPricing = asyncHandler(async (req, res, next) => {
   
   const route_id = routeRows[0].route_id;
   
-  // Create a new flight with the pricing information
-  // Note: This is simplified and would need to be adapted to your specific requirements
   const [result] = await pool.query(`
     INSERT INTO flights (
       flight_number, 
@@ -123,7 +118,6 @@ exports.createFlightPricing = asyncHandler(async (req, res, next) => {
   
   const flightId = result.insertId;
   
-  // Get the newly created flight pricing
   const pricingRule = await Flight.getFlightPricingById(flightId);
   
   res.status(201).json({
@@ -209,7 +203,6 @@ exports.getFlightPricingByFlightId = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Flight not found with id of ${req.params.id}`, 404));
   }
   
-  // Calculate prices based on base price and multipliers
   const prices = {
     economy: parseFloat(flight.base_price) * parseFloat(flight.economy_class_multiplier || 1.0),
     business: parseFloat(flight.base_price) * parseFloat(flight.business_class_multiplier || 2.5),

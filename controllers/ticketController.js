@@ -36,7 +36,6 @@ exports.getTicket = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Ticket not found with id of ${req.params.id}`, 404));
   }
   
-  // If not admin and not the ticket owner
   if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to access this ticket', 403));
   }
@@ -57,7 +56,6 @@ exports.printTicket = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Ticket not found with id of ${req.params.id}`, 404));
   }
   
-  // If not admin and not the ticket owner
   if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to access this ticket', 403));
   }
@@ -78,7 +76,6 @@ exports.printTicket = asyncHandler(async (req, res, next) => {
 // @route   GET /api/tickets/user/:userId
 // @access  Private
 exports.getTicketsByUser = asyncHandler(async (req, res, next) => {
-  // If not admin and not the user
   if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id != req.params.userId) {
     return next(new ErrorResponse('Not authorized to access these tickets', 403));
   }
@@ -166,7 +163,6 @@ exports.generateTicketSalesReport = asyncHandler(async (req, res, next) => {
 // @route   POST /api/tickets
 // @access  Private
 exports.bookTicket = asyncHandler(async (req, res, next) => {
-  // Verify flight exists and is not canceled
   const flight = await Flight.getFlightById(req.body.flight_id);
   
   if (!flight) {
@@ -181,10 +177,7 @@ exports.bookTicket = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Cannot book tickets for a completed flight', 400));
   }
   
-  // Get the class (default to economy if not specified)
   const ticketClass = req.body.class || 'economy';
-  
-  // Check if seat is available in the specified class
   const isSeatAvailable = await FlightSeats.isSeatAvailable(
     req.body.flight_id,
     ticketClass,
@@ -195,10 +188,8 @@ exports.bookTicket = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Seat already booked or not available in this class', 409));
   }
   
-  // If booking woman_only class, validate gender
   if (ticketClass === 'woman_only') {
     const isValidForWomanOnly = FlightSeats.validateWomanOnlySeat(req.user.gender);
-    
     if (!isValidForWomanOnly) {
       return next(new ErrorResponse('Woman-only seats can only be booked by female passengers', 403));
     }
@@ -248,19 +239,16 @@ exports.updateTicket = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Ticket not found with id of ${req.params.id}`, 404));
   }
   
-  // If not admin and not the ticket owner
   if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to update this ticket', 403));
   }
   
-  // If changing seat or class, validate the new seat
   if ((req.body.seat_number && req.body.seat_number !== ticket.seat_number) ||
       (req.body.class && req.body.class !== ticket.class)) {
     
     const newClass = req.body.class || ticket.class;
     const newSeat = req.body.seat_number || ticket.seat_number;
     
-    // Check if new seat is available
     const isSeatAvailable = await FlightSeats.isSeatAvailable(
       ticket.flight_id,
       newClass,
@@ -271,17 +259,14 @@ exports.updateTicket = asyncHandler(async (req, res, next) => {
       return next(new ErrorResponse('Requested seat is not available', 409));
     }
     
-    // If changing to woman_only class, validate gender
     if (newClass === 'woman_only' && newClass !== ticket.class) {
       const isValidForWomanOnly = FlightSeats.validateWomanOnlySeat(req.user.gender);
-      
       if (!isValidForWomanOnly) {
         return next(new ErrorResponse('Woman-only seats can only be booked by female passengers', 403));
       }
     }
   }
   
-  // Regular users can only update seat and class
   if (req.user.role !== 'admin' && req.user.role !== 'worker') {
     req.body = { 
       seat_number: req.body.seat_number,
@@ -317,12 +302,10 @@ exports.deleteTicket = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Ticket not found with id of ${req.params.id}`, 404));
   }
   
-  // If not admin and not the ticket owner
   if (req.user.role !== 'admin' && req.user.role !== 'worker' && req.user.user_id !== ticket.user_id) {
     return next(new ErrorResponse('Not authorized to delete this ticket', 403));
   }
   
-  // Check if flight has already departed
   const flight = await Flight.getFlightById(ticket.flight_id);
   if (flight.status !== 'scheduled' && flight.status !== 'boarding' && req.user.role !== 'admin') {
     return next(new ErrorResponse('Cannot cancel ticket for a flight that has departed', 400));
@@ -373,7 +356,7 @@ exports.updatePaymentStatus = asyncHandler(async (req, res, next) => {
 // @access  Public
 exports.getAvailableSeats = asyncHandler(async (req, res, next) => {
   const flightId = req.params.flightId;
-  const seatClass = req.params.class; // Optional parameter
+  const seatClass = req.params.class; // FIXME: Do we really need this?
   
   const flight = await Flight.getFlightById(flightId);
   
@@ -381,10 +364,8 @@ exports.getAvailableSeats = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Flight not found with id of ${flightId}`, 404));
   }
   
-  // Get available seats, either for a specific class or all classes
   const availableSeats = await Ticket.getAvailableSeatsByClass(flightId, seatClass);
   
-  // Calculate prices for each class
   const prices = {};
   if (flight.base_price) {
     const classes = seatClass ? [seatClass] : Object.keys(availableSeats);
@@ -429,8 +410,6 @@ exports.validateSeat = asyncHandler(async (req, res, next) => {
   if (!flight) {
     return next(new ErrorResponse('Flight not found', 404));
   }
-  
-  // Validate the seat
   const validationResult = await Ticket.validateSeatForBooking(
     flight_id,
     seat_number,
@@ -438,7 +417,6 @@ exports.validateSeat = asyncHandler(async (req, res, next) => {
     req.user.user_id
   );
   
-  // Calculate price if seat is valid
   let price = null;
   if (validationResult.valid && flight.base_price) {
     const multiplierField = `${seatClass}_class_multiplier`;
@@ -482,17 +460,14 @@ exports.holdSeat = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Flight not found', 404));
   }
   
-  // This would typically involve a more complex implementation with Redis
-  // or another system to track temporary holds
-  // For now, we'll just check if the seat is available
-  
+// Redis would look fantastic there
+
   const seatAvailable = await FlightSeats.isSeatAvailable(flight_id, seatClass, seat_number);
   
   if (!seatAvailable) {
     return next(new ErrorResponse('Seat is not available', 409));
   }
   
-  // If woman_only class, validate gender
   if (seatClass === 'woman_only') {
     const isValidForWomanOnly = FlightSeats.validateWomanOnlySeat(req.user.gender);
     
@@ -501,8 +476,6 @@ exports.holdSeat = asyncHandler(async (req, res, next) => {
     }
   }
   
-  // In a complete implementation, we would store the hold in a cache
-  // with an expiration time
   
   res.status(200).json({
     success: true,
@@ -526,9 +499,6 @@ exports.releaseSeat = asyncHandler(async (req, res, next) => {
   if (!flight_id || !seat_number || !seatClass) {
     return next(new ErrorResponse('Please provide flight_id, seat_number, and class', 400));
   }
-  
-  // In a complete implementation, we would remove the hold from our cache
-  // Here we'll just verify the flight exists
   
   const flight = await Flight.getFlightById(flight_id);
   

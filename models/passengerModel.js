@@ -1,6 +1,6 @@
 const { pool } = require("../config/database");
 
-//TODO Rename the thing to userModel
+//TODO: Rename the thing to userModel
 
 /**
  * Get all passengers with pagination

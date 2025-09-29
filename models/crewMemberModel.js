@@ -39,7 +39,6 @@ exports.getAllCrewMembers = async (page = 1, limit = 10, role = null) => {
   
   const [rows] = await pool.query(query, params);
   
-  // Get total count with the same filter
   let countQuery = 'SELECT COUNT(*) as count FROM crew_members';
   const countParams = [];
   
@@ -221,7 +220,6 @@ exports.updateCrewMember = async (id, crewMemberData) => {
  * @returns {Promise<boolean>} Whether deletion was successful
  */
 exports.deleteCrewMember = async (id) => {
-  // First check if this crew member is assigned to any crews
   const [assignments] = await pool.query(
     'SELECT COUNT(*) AS count FROM crew_assignments WHERE crew_member_id = ?',
     [id]

@@ -37,7 +37,6 @@ exports.getPassenger = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // If not admin/staff and not the passenger
   if (
     req.user.role !== "admin" &&
     req.user.role !== "staff" &&
@@ -115,14 +114,12 @@ exports.updatePassenger = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // If not admin and not the passenger
   if (req.user.role !== "admin" && req.user.passenger_id != req.params.id) {
     return next(
       new ErrorResponse("Not authorized to update this passenger", 403),
     );
   }
 
-  // If changing passport, check if it exists
   if (
     req.body.passport_number &&
     req.body.passport_number !== passenger.passport_number
@@ -170,7 +167,6 @@ exports.deletePassenger = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // Check if passenger has tickets
   const tickets = await Ticket.getTicketsByPassenger(req.params.id);
 
   if (tickets.length > 0) {

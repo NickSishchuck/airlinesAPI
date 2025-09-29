@@ -11,7 +11,6 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// Public routes
 router.route('/:flightId/seat-map')
   .get(getFlightSeatMap);
 
@@ -21,11 +20,9 @@ router.route('/:flightId/available/:class')
 router.route('/:flightId/check/:class/:seatNumber')
   .get(checkSeatAvailability);
 
-// Protected routes
 router.route('/:flightId/validate')
   .post(protect, validateSeat);
 
-// Admin routes
 router.route('/:flightId/initialize')
   .post(protect, authorize('admin', 'worker'), initializeFlightSeats);
 
